@@ -1,6 +1,7 @@
 LR2-MOD Extension
 
 Huge amount of small to medium changes made.
+Be sure to enable "Ask a favour"
 
 To Install
 
