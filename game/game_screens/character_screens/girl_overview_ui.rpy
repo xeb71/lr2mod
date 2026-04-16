@@ -1,0 +1,504 @@
+screen person_info_detailed(person):
+    add paper_background_image
+    modal True
+    zorder 100
+
+    default master_opinion_dict = {k: v for k, v in dict(person.opinions, **person.sexy_opinions).items() if k not in ("vaginal sex", "anal sex")}
+    default relationship_list = sorted(town_relationships.get_relationship_type_list(person, visible = True), key = lambda x: (RelationshipArray.relationship_type_sort_index(x[1]), x[0].name))
+    default visible_roles = ", ".join([x.role_name for x in person.special_role if not x.hidden])
+    default person_portrait = person.build_person_portrait()
+    default person_job_info = person_info_ui_get_job_title(person)
+    default base_salary = sum(x.base_salary for x in person.jobs if x.is_paid)
+    default fertility_info = f"{person.effective_fertility:.1f}%"
+    default baby_desire_string = get_baby_desire_format(person)
+    default fertility_peak_day = str(person.ideal_fertile_day + 1)
+    default known_days = str(day - person.event_triggers_dict.get("birth_control_known_day", 0))
+    default obedience_info = get_obedience_string(person.obedience)
+    default personality_info = person.personality.base_personality_prefix.capitalize()
+    default height_info = height_to_string(person.height)
+    default weight_info = get_person_weight_string(person)
+    if persistent.pregnancy_pref == 0:
+        default fertility_tooltip = ""
+    elif persistent.pregnancy_pref == 1:
+        default fertility_tooltip = "The fertility percentage is a fixed value for the character."
+    elif persistent.pregnancy_pref == 2:
+        default fertility_tooltip = "The fertility percentage is calculated based on curve that increases around her peak day."
+    else:
+        default fertility_tooltip  = "The fertility percentage is 1% when not in the 5 day ovulation window, when in the window the fertility increases, she can get pregnant from one insemination for several days."
+
+    if isinstance(person.hair_colour, Iterable):
+        if isinstance(person.hair_colour[0], str):
+            default hair_info = person.hair_colour[0].title()
+        else:
+            default hair_info = closest_hair_colour(person.hair_colour[1])
+    else:
+        default hair_info = ""
+    if isinstance(person.eyes, Iterable):
+        if isinstance(person.eyes[0], str):
+            default eyes_info = person.eyes[0].title()
+        else:
+            default eyes_info = closest_eye_colour(person.eyes[1])
+    else:
+        default eyes_info = ""
+
+    vbox:
+        spacing 24
+        xalign 0.5
+        xanchor 0.5
+        yalign 0.2
+        frame:
+            xsize 1750
+            ysize 120
+            padding (0, 10)
+            align (.5, .5)
+            background "#1a45a1aa"
+            hbox:
+                spacing 30
+                imagebutton:
+                    offset (0, -20)
+                    idle person_portrait at zoom(.65)
+                    xysize (465, 120)
+                fixed:
+                    xsize (720 if persistent.pregnancy_pref > 0 else 1270)
+                    vbox:
+                        hbox:
+                            text format_titles(person) style "menu_text_style" size 30 xalign 0.5 yalign 0.5 yanchor 0.5 color person.char.who_args["color"] font person.char.what_args["font"]
+                            use favourite_toggle_button(person)
+                        text "Job: [person_job_info]" style "menu_text_style" xalign 0.5 yalign 0.5 yanchor 0.5
+                        if visible_roles:
+                            text "Special Roles: [visible_roles]" style "menu_text_style" xalign 0.5 yalign 0.5 yanchor 0.5
+
+                if isinstance(person, Person) and persistent.pregnancy_pref > 0:
+                    vbox:
+                        xsize 320
+                        if person.knows_pregnant:
+                            text "Pregnant: Yes" style "menu_text_style"
+                            if day < person.pregnancy_show_day:
+                                text f"- Visible Day: {person.pregnancy_show_day}" style "menu_text_style"
+                            elif day < person.pregnancy_due_day:
+                                text f"- Delivery Day: {person.pregnancy_due_day}" style "menu_text_style"
+                        elif person.is_clone:
+                            text "Fertility: Sterile" style "menu_text_style"
+                        elif person.is_infertile:
+                            text "Fertility: Infertile" style "menu_text_style"
+                        elif person.fertility_percent < 0:
+                            text "Fertility: Intrauterine Device" style "menu_text_style"
+                        else:
+                            if persistent.pregnancy_pref > 0:
+                                if person.has_event_day("last_birth") and person.days_since_event("last_birth") < 21:
+                                    text "Fertility: Recovering from birth" style "menu_text_style"
+                                else:
+                                    hbox:
+                                        text "Fertility: [fertility_info]" style "menu_text_style"
+                                        textbutton "{image=question_mark_small}":
+                                            style "transparent_style"
+                                            tooltip fertility_tooltip
+                                            action NullAction()
+                            if person.bc_status_known and person.on_birth_control:
+                                text "BirthControl: [person.birthcontrol_efficiency:.0f]%" style "menu_text_style"
+                            if persistent.pregnancy_pref >= 2:
+                                text "Monthly Peak Day: [fertility_peak_day]" style "menu_text_style"
+                            if person.bc_status_known and persistent.pregnancy_pref > 0:
+                                text "Pregnancy chance: [person.pregnancy_chance:.2f]%" style "menu_text_style"
+
+                    vbox:
+                        xsize 320
+                        if person.is_clone or person.fertility_percent <= -100:
+                            pass
+                        elif person.knows_pregnant:
+                            text "Birth Control: No" style "menu_text_style"
+                        elif not person.bc_status_known:
+                            text "Birth Control: Unknown" style "menu_text_style"
+                        else:
+                            hbox:
+                                text "Birth Control:" style "menu_text_style"
+                                text ("Yes" if person.on_birth_control else "No") style "menu_text_style"
+                                text " ([known_days] days old)" size 12 style "menu_text_style" yalign 0.8
+                            if persistent.pregnancy_pref >= 3:
+                                text "Baby Desire: [baby_desire_string]" style "menu_text_style"
+
+                        use serum_tolerance_indicator(person)
+
+        hbox:
+            xsize 1750
+            spacing 30
+            frame:
+                background "#1a45a1aa"
+                xysize (325, 264)
+                vbox xfill True:
+                    text "Status and Info" style "serum_text_style_header"
+                    text "Happiness: [person.happiness]" style "menu_text_style"
+                    text "Sluttiness: [person.sluttiness]%" style "menu_text_style"
+                    text "Obedience: [person.obedience] {image=triskelion_token_small} [obedience_info]" style "menu_text_style"
+                    text "Love: [person.love]" style "menu_text_style"
+                    hbox:
+                        text "Personality: [personality_info]" style "menu_text_style"
+                        textbutton "{image=question_mark_small}":
+                            style "transparent_style"
+                            tooltip f"Gain rates — Love: {person.personality.love_gain_multiplier:.0%}, Happiness: {person.personality.happiness_gain_multiplier:.0%}, Obedience: {person.personality.obedience_gain_multiplier:.0%}, Sluttiness: {person.personality.slut_gain_multiplier:.0%}"
+                            action NullAction()
+                    if person.is_girlfriend:
+                        text "Relationship: Girlfriend" style "menu_text_style"
+                    else:
+                        text "Relationship: [person.relationship]" style "menu_text_style"
+                    if person.is_girlfriend:
+                        text "Significant Other: [mc.name]" style "menu_text_style"
+                    elif person.has_significant_other:
+                        text "Significant Other: [person.SO_name]" style "menu_text_style"
+                    if person in mc.business.on_payroll:
+                        text "Salary: $[person.salary:.2f]/day" style "menu_text_style"
+                        if person.is_employee and person.has_event_day("last_promotion_day"):
+                            text f"Last promotion: {get_formatted_date_only_string(person.get_event_day('last_promotion_day'))}" style "menu_text_style"
+
+            frame:
+                background "#1a45a1aa"
+                xysize (325, 264)
+                vbox xfill True:
+                    text "Characteristics" style "serum_text_style_header"
+                    text "Intelligence: [person.int]" style "menu_text_style"
+                    text "Focus: [person.focus]" style "menu_text_style"
+                    text "Charisma: [person.charisma]" style "menu_text_style"
+                    text "Age: [person.age]" style "menu_text_style"
+                    text "Cup size: [person.tits]" style "menu_text_style"
+                    text "Height: [height_info]" style "menu_text_style"
+                    text "Weight: [weight_info]" style "menu_text_style"
+                    text "Hair: [hair_info]" style "menu_text_style"
+                    text "Eyes: [eyes_info]" style "menu_text_style"
+
+            frame:
+                background "#1a45a1aa"
+                xysize (325, 264)
+                vbox xfill True:
+                    text "Work Skills" style "serum_text_style_header"
+                    text "Human Resources: [person.hr_skill]" style "menu_text_style"
+                    text "Marketing: [person.market_skill]" style "menu_text_style"
+                    text "Research & Development: [person.research_skill]" style "menu_text_style"
+                    text "Production: [person.production_skill]" style "menu_text_style"
+                    text "Supply Procurement: [person.supply_skill]" style "menu_text_style"
+                    text "Job Experience Level: [person.work_experience]" style "menu_text_style"
+                    if person.current_job and (person.is_employee or person.is_intern):
+                        textbutton f"Review Duties: {len(person.duties)}/{person.current_job.seniority_level}":
+                            style "textbutton_style"
+                            text_style "menu_text_style"
+                            action Show("set_duties_screen", None, person, person.current_job, allow_changing_duties = False, show_available_duties = True, hide_on_exit = True)
+
+            frame:
+                background "#1a45a1aa"
+                xysize (325, 264)
+                vbox xfill True:
+                    text "Sex Skills" style "serum_text_style_header"
+                    text "Foreplay Skill: [person.foreplay_sex_skill]" style "menu_text_style"
+                    text "Oral Skill: [person.oral_sex_skill]" style "menu_text_style"
+                    text "Vaginal Skill: [person.vaginal_sex_skill]" style "menu_text_style"
+                    text "Anal Skill: [person.anal_sex_skill]" style "menu_text_style"
+                    text "Novelty: [person.novelty:.0f]%" style "menu_text_style"
+
+            frame:
+                background "#1a45a1aa"
+                xysize (325, 264)
+                vbox xfill True:
+                    text "Sex Record" style "serum_text_style_header"
+                    viewport:
+                        scrollbars "vertical"
+                        draggable False
+                        mousewheel True
+                        vbox:
+                            for record, value in sorted(person.sex_record.items()):
+                                if record == "Last Sex Day":
+                                    text f"Last Sex: {last_sex_to_string(day, value)}" style "menu_text_style"
+                                else:
+                                    text "[record]: [value]" style "menu_text_style"
+
+        hbox:
+            xsize 1750
+            spacing 30
+            frame:
+                background "#1a45a1aa"
+                xysize (325, 264)
+                vbox xfill True:
+                    text "Loves" style "serum_text_style_header"
+                    use opinion_list(master_opinion_dict, 2)
+
+            frame:
+                background "#1a45a1aa"
+                xysize (325, 264)
+                vbox xfill True:
+                    text "Likes" style "serum_text_style_header"
+                    use opinion_list(master_opinion_dict, 1)
+
+            frame:
+                background "#1a45a1aa"
+                xysize (325, 264)
+                vbox xfill True:
+                    text "Dislikes" style "serum_text_style_header"
+                    use opinion_list(master_opinion_dict, -1)
+
+            frame:
+                background "#1a45a1aa"
+                xysize (325, 264)
+                vbox xfill True:
+                    text "Hates" style "serum_text_style_header"
+                    use opinion_list(master_opinion_dict, -2)
+
+            frame:
+                background "#1a45a1aa"
+                xysize (325, 264)
+                vbox xfill True:
+                    text "Other Relations" style "serum_text_style_header"
+                    if len(relationship_list) > 10:
+                        viewport:
+                            scrollbars "vertical"
+                            draggable False
+                            mousewheel True
+                            vbox:
+                                for relationship in relationship_list:
+                                    text "[relationship[0].name] [relationship[0].last_name] [[[relationship[1]]]" size 14 style "menu_text_style"
+                    else:
+                        for relationship in relationship_list:
+                            text "[relationship[0].name] [relationship[0].last_name] [[[relationship[1]]]" size 14 style "menu_text_style"
+
+        hbox:
+            xsize 1750
+            frame:
+                background "#1a45a1aa"
+                xsize 1750
+                padding (15, 8)
+                vbox:
+                    spacing 8
+                    hbox:
+                        spacing 30
+                        vbox:
+                            xsize 845
+                            spacing 5
+                            hbox:
+                                text f"Like Men: {getattr(person, 'like_men', 0):+d}" style "serum_text_style_header"
+                                textbutton "{image=question_mark_small}":
+                                    style "transparent_style"
+                                    tooltip "Tracks how much she has come to enjoy sex with men. Increases by +1 each time she reaches a deep trance orgasm during sex with a man. Range: -10 to +10."
+                                    action NullAction()
+                            fixed:
+                                xsize 845
+                                ysize 26
+                                frame:
+                                    background "#555555"
+                                    xsize 845
+                                    ysize 4
+                                    yalign 0.5
+                                frame:
+                                    background "#aaaaaa"
+                                    xsize 2
+                                    ysize 12
+                                    xpos 0.5
+                                    xanchor 0.5
+                                    yalign 0.5
+                                frame:
+                                    background "#ff0000"
+                                    xsize 8
+                                    ysize 24
+                                    xpos (getattr(person, 'like_men', 0) + 10) / 20.0
+                                    xanchor 0.5
+                                    yalign 0.5
+                        vbox:
+                            xsize 845
+                            spacing 5
+                            hbox:
+                                text f"Like Women: {getattr(person, 'like_women', 0):+d}" style "serum_text_style_header"
+                                textbutton "{image=question_mark_small}":
+                                    style "transparent_style"
+                                    tooltip "Tracks how much she has come to enjoy sex with women. Increases by +1 each time she reaches a deep trance orgasm during sex with a woman. Range: -10 to +10."
+                                    action NullAction()
+                            fixed:
+                                xsize 845
+                                ysize 26
+                                frame:
+                                    background "#555555"
+                                    xsize 845
+                                    ysize 4
+                                    yalign 0.5
+                                frame:
+                                    background "#aaaaaa"
+                                    xsize 2
+                                    ysize 12
+                                    xpos 0.5
+                                    xanchor 0.5
+                                    yalign 0.5
+                                frame:
+                                    background "#ff0000"
+                                    xsize 8
+                                    ysize 24
+                                    xpos (getattr(person, 'like_women', 0) + 10) / 20.0
+                                    xanchor 0.5
+                                    yalign 0.5
+                    hbox:
+                        spacing 30
+                        vbox:
+                            xsize 845
+                            spacing 5
+                            hbox:
+                                text f"Like Vaginal Stimulation: {getattr(person, 'like_vaginal', 0):+d}" style "serum_text_style_header"
+                                textbutton "{image=question_mark_small}":
+                                    style "transparent_style"
+                                    tooltip "Tracks how much she enjoys vaginal stimulation. -10 is avoid, 0 is like, +10 is addicted. Range: -10 to +10."
+                                    action NullAction()
+                            fixed:
+                                xsize 845
+                                ysize 26
+                                frame:
+                                    background "#555555"
+                                    xsize 845
+                                    ysize 4
+                                    yalign 0.5
+                                frame:
+                                    background "#aaaaaa"
+                                    xsize 2
+                                    ysize 12
+                                    xpos 0.5
+                                    xanchor 0.5
+                                    yalign 0.5
+                                frame:
+                                    background "#ff0000"
+                                    xsize 8
+                                    ysize 24
+                                    xpos (getattr(person, 'like_vaginal', 0) + 10) / 20.0
+                                    xanchor 0.5
+                                    yalign 0.5
+                        vbox:
+                            xsize 845
+                            spacing 5
+                            hbox:
+                                text f"Like Anal Stimulation: {getattr(person, 'like_anal', 0):+d}" style "serum_text_style_header"
+                                textbutton "{image=question_mark_small}":
+                                    style "transparent_style"
+                                    tooltip "Tracks how much she enjoys anal stimulation. -10 is avoid, 0 is like, +10 is addicted. Range: -10 to +10."
+                                    action NullAction()
+                            fixed:
+                                xsize 845
+                                ysize 26
+                                frame:
+                                    background "#555555"
+                                    xsize 845
+                                    ysize 4
+                                    yalign 0.5
+                                frame:
+                                    background "#aaaaaa"
+                                    xsize 2
+                                    ysize 12
+                                    xpos 0.5
+                                    xanchor 0.5
+                                    yalign 0.5
+                                frame:
+                                    background "#ff0000"
+                                    xsize 8
+                                    ysize 24
+                                    xpos (getattr(person, 'like_anal', 0) + 10) / 20.0
+                                    xanchor 0.5
+                                    yalign 0.5
+
+        hbox:
+            xsize 1750
+            spacing 30
+            frame:
+                background "#1a45a1aa"
+                xysize (325, 185)
+                vbox xfill True:
+                    text "Job Statistics" style "serum_text_style_header"
+                    text f"HR: {{potential_colour=hr|{person.human_resource_potential}}}{person.human_resource_potential}% Company Efficiency{{/potential_colour}}" style "menu_text_style"
+                    text f"Marketing: {{potential_colour=market|{person.marketing_potential}}}{person.marketing_potential} People {{/potential_colour}}" style "menu_text_style"
+                    text f"Research: {{potential_colour=research|{person.research_potential}}}{person.research_potential} Research Points{{/potential_colour}}" style "menu_text_style"
+                    text f"Production: {{potential_colour=production|{person.production_potential}}}{person.production_potential} Production Points{{/potential_colour}}" style "menu_text_style"
+                    text f"Supply: {{potential_colour=supply|{person.supply_potential}}}{person.supply_potential} Supply Units{{/potential_colour}}" style "menu_text_style"
+                    if person in mc.business.on_payroll:
+                        text "Desired Salary: $[base_salary:.2f]/day" style "menu_text_style"
+
+            frame:
+                background None
+                anchor [0.5,1]
+                align [0.5,0]
+                xysize [685,125]
+                xoffset 10
+                yoffset 30
+                imagebutton:
+                    align [0.0,0.5]
+                    auto "gui/button/choice_%s_background.png"
+                    focus_mask "gui/button/choice_idle_background.png"
+                    action Hide("person_info_detailed")
+                textbutton "Return" align [0.17,0.5] style "return_button_style"
+
+                if person.has_story:
+                    imagebutton:
+                        align [1.0,0.5]
+                        auto "gui/button/choice_%s_background.png"
+                        focus_mask "gui/button/choice_idle_background.png"
+                        action [
+                            Show("story_progress", None, person)
+                        ]
+                    textbutton "Story Progress" align [0.87,0.5] style "return_button_style"
+            frame:
+                background "#1a45a1aa"
+                xysize (325, 185)
+                vbox xfill True:
+                    text "Currently Affected By" style "serum_text_style_header"
+                    viewport:
+                        scrollbars "vertical"
+                        draggable False
+                        mousewheel True
+                        ysize 60
+                        vbox:
+                            text "Suggestibility: [person.suggestibility:.0f]%" style "menu_text_style"
+                            if not person.serum_effects:
+                                text "No active serums" style "menu_text_style"
+                            else:
+                                for serum in person.serum_effects:
+                                    text f"{serum.name}: {serum.total_duration - serum.duration_counter} Turns Left" style "menu_text_style"
+                    text "Inventory" style "serum_text_style_header"
+                    $ _toy_inv = getattr(person, 'toy_inventory', [])
+                    if not _toy_inv:
+                        text "No items" style "menu_text_style"
+                    else:
+                        viewport:
+                            scrollbars "vertical"
+                            draggable False
+                            mousewheel True
+                            ysize 60
+                            vbox:
+                                for toy in _toy_inv:
+                                    text f"{toy.name}{ ' (Installed)' if toy.installed else ''}" style "menu_text_style"
+            frame:
+                background "#1a45a1aa"
+                xysize (325, 185)
+                vbox xfill True:
+                    text "Children ([person.kids])" style "serum_text_style_header"
+                    if person.kids_list:
+                        viewport:
+                            scrollbars "vertical"
+                            draggable False
+                            mousewheel True
+                            vbox:
+                                for kid in person.kids_list:
+                                    text f"{kid.full_name} ({kid.age}y, {kid.gender[0].upper()}) - Father: {kid.father}" size 14 style "menu_text_style"
+                    elif person.kids > 0:
+                        text "Kids: [person.kids]" style "menu_text_style"
+                    else:
+                        text "No children" style "menu_text_style"
+
+    use default_tooltip("person_info_detailed")
+
+screen opinion_list(opinion_dict, preference):
+    if len([x for x in opinion_dict if opinion_dict[x][0] == preference]) > 10:
+        viewport:
+            scrollbars "vertical"
+            draggable False
+            mousewheel True
+            vbox:
+                use opinion_list_values(opinion_dict, preference)
+
+    else:
+        use opinion_list_values(opinion_dict, preference)
+
+screen opinion_list_values(opinion_dict, preference):
+    for opinion in sorted(opinion_dict):
+        if opinion_dict[opinion][0] == preference:
+            if opinion_dict[opinion][1]:
+                text opinion.title() style "menu_text_style"
+            else:
+                text "???" style "menu_text_style"

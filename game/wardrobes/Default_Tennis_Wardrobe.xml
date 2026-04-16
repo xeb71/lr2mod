@@ -1,0 +1,667 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+    HOW OUTFITS ARE ADDED TO THIS WARDROBE
+    =======================================
+    Each <Outfit> defines a complete clothing combination that NPCs can wear at
+    the tennis courts.  The game randomly picks one outfit per NPC per day.
+
+    OverwearSets  – outer clothing only (top, skirt, shoes).  The game
+                    automatically adds underwear from the character's personal
+                    wardrobe or via random generation.  This is the preferred
+                    section for tennis outfits.
+    FullSets      – full outfit including underwear.  Used as a fallback when
+                    the OverwearSet assembly path is not available.
+
+    To add a new outfit:
+      1. Copy an existing <Outfit> block inside the desired section.
+      2. Change the "name" attribute to something unique and descriptive.
+      3. Adjust colour values on each <Item>:
+           red, green, blue  – main colour  (0.0–1.0)
+           alpha             – opacity       (0.0–1.0, usually 0.95)
+      4. Change the "name" attribute on <Item> to a valid clothing identifier
+         from clothing_lists_ren.py.  Note the typo "Sleveless_Top" is correct.
+      5. Optionally add pattern attributes:
+           pattern           – e.g. "Pattern_1"
+           pred, pgreen, pblue, palpha – pattern colour/opacity
+      6. The wardrobe XML is reloaded on every save-load via the compatibility
+         fix, so new outfits take effect immediately on existing saves.
+-->
+<Wardrobe name="Tennis Wardrobe">
+    <FullSets>
+        <!-- === White tops === -->
+        <Outfit name="White Skirt Tanktop Tennis Full">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sports_Bra" red="0.95" />
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Tanktop" red="0.95" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Panties" red="0.95" />
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="White Skirt Tshirt Tennis Full">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sports_Bra" red="0.95" />
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Tshirt" red="0.95" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Panties" red="0.95" />
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="White Skirt Sleeveless Tennis Full">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sports_Bra" red="0.95" />
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sleveless_Top" red="0.95" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Panties" red="0.95" />
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="White MiniSkirt Tanktop Tennis Full">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sports_Bra" red="0.95" />
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Tanktop" red="0.95" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Panties" red="0.95" />
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Mini_Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="White MiniSkirt Tshirt Tennis Full">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sports_Bra" red="0.95" />
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Tshirt" red="0.95" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Panties" red="0.95" />
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Mini_Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="White MiniSkirt Sleeveless Tennis Full">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sports_Bra" red="0.95" />
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sleveless_Top" red="0.95" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Panties" red="0.95" />
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Mini_Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <!-- === Light-blue tops === -->
+        <Outfit name="Blue Skirt Tanktop Tennis Full">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.95" green="0.72" name="Sports_Bra" red="0.34" />
+                <Item alpha="0.95" blue="0.95" green="0.72" name="Tanktop" red="0.34" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Panties" red="0.95" />
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="Blue Skirt Tshirt Tennis Full">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.95" green="0.72" name="Sports_Bra" red="0.34" />
+                <Item alpha="0.95" blue="0.95" green="0.72" name="Tshirt" red="0.34" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Panties" red="0.95" />
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="Blue Skirt Sleeveless Tennis Full">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.95" green="0.72" name="Sports_Bra" red="0.34" />
+                <Item alpha="0.95" blue="0.95" green="0.72" name="Sleveless_Top" red="0.34" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Panties" red="0.95" />
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="Blue MiniSkirt Tanktop Tennis Full">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.95" green="0.72" name="Sports_Bra" red="0.34" />
+                <Item alpha="0.95" blue="0.95" green="0.72" name="Tanktop" red="0.34" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Panties" red="0.95" />
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Mini_Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="Blue MiniSkirt Tshirt Tennis Full">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.95" green="0.72" name="Sports_Bra" red="0.34" />
+                <Item alpha="0.95" blue="0.95" green="0.72" name="Tshirt" red="0.34" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Panties" red="0.95" />
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Mini_Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="Blue MiniSkirt Sleeveless Tennis Full">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.95" green="0.72" name="Sports_Bra" red="0.34" />
+                <Item alpha="0.95" blue="0.95" green="0.72" name="Sleveless_Top" red="0.34" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Panties" red="0.95" />
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Mini_Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <!-- === Pink tops === -->
+        <Outfit name="Pink Skirt Tanktop Tennis Full">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.71" green="0.41" name="Sports_Bra" red="1.0" />
+                <Item alpha="0.95" blue="0.71" green="0.41" name="Tanktop" red="1.0" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Panties" red="0.95" />
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="Pink Skirt Tshirt Tennis Full">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.71" green="0.41" name="Sports_Bra" red="1.0" />
+                <Item alpha="0.95" blue="0.71" green="0.41" name="Tshirt" red="1.0" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Panties" red="0.95" />
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="Pink Skirt Sleeveless Tennis Full">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.71" green="0.41" name="Sports_Bra" red="1.0" />
+                <Item alpha="0.95" blue="0.71" green="0.41" name="Sleveless_Top" red="1.0" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Panties" red="0.95" />
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="Pink MiniSkirt Tanktop Tennis Full">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.71" green="0.41" name="Sports_Bra" red="1.0" />
+                <Item alpha="0.95" blue="0.71" green="0.41" name="Tanktop" red="1.0" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Panties" red="0.95" />
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Mini_Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="Pink MiniSkirt Tshirt Tennis Full">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.71" green="0.41" name="Sports_Bra" red="1.0" />
+                <Item alpha="0.95" blue="0.71" green="0.41" name="Tshirt" red="1.0" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Panties" red="0.95" />
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Mini_Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="Pink MiniSkirt Sleeveless Tennis Full">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.71" green="0.41" name="Sports_Bra" red="1.0" />
+                <Item alpha="0.95" blue="0.71" green="0.41" name="Sleveless_Top" red="1.0" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Panties" red="0.95" />
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Mini_Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <!-- === Mint/teal tops === -->
+        <Outfit name="Mint Skirt Tanktop Tennis Full">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.65" green="0.85" name="Sports_Bra" red="0.4" />
+                <Item alpha="0.95" blue="0.65" green="0.85" name="Tanktop" red="0.4" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Panties" red="0.95" />
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="Mint Skirt Tshirt Tennis Full">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.65" green="0.85" name="Sports_Bra" red="0.4" />
+                <Item alpha="0.95" blue="0.65" green="0.85" name="Tshirt" red="0.4" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Panties" red="0.95" />
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="Mint Skirt Sleeveless Tennis Full">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.65" green="0.85" name="Sports_Bra" red="0.4" />
+                <Item alpha="0.95" blue="0.65" green="0.85" name="Sleveless_Top" red="0.4" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Panties" red="0.95" />
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="Mint MiniSkirt Tanktop Tennis Full">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.65" green="0.85" name="Sports_Bra" red="0.4" />
+                <Item alpha="0.95" blue="0.65" green="0.85" name="Tanktop" red="0.4" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Panties" red="0.95" />
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Mini_Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="Mint MiniSkirt Tshirt Tennis Full">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.65" green="0.85" name="Sports_Bra" red="0.4" />
+                <Item alpha="0.95" blue="0.65" green="0.85" name="Tshirt" red="0.4" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Panties" red="0.95" />
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Mini_Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="Mint MiniSkirt Sleeveless Tennis Full">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.65" green="0.85" name="Sports_Bra" red="0.4" />
+                <Item alpha="0.95" blue="0.65" green="0.85" name="Sleveless_Top" red="0.4" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Panties" red="0.95" />
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Mini_Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+    </FullSets>
+    <UnderwearSets />
+    <OverwearSets>
+        <!-- === White tops === -->
+        <Outfit name="White Skirt Tanktop Tennis">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Tanktop" red="0.95" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="White Skirt Tshirt Tennis">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Tshirt" red="0.95" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="White Skirt Sleeveless Tennis">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sleveless_Top" red="0.95" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="White MiniSkirt Tanktop Tennis">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Tanktop" red="0.95" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Mini_Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="White MiniSkirt Tshirt Tennis">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Tshirt" red="0.95" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Mini_Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="White MiniSkirt Sleeveless Tennis">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sleveless_Top" red="0.95" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Mini_Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <!-- === Light-blue tops === -->
+        <Outfit name="Blue Skirt Tanktop Tennis">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.95" green="0.72" name="Tanktop" red="0.34" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="Blue Skirt Tshirt Tennis">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.95" green="0.72" name="Tshirt" red="0.34" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="Blue Skirt Sleeveless Tennis">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.95" green="0.72" name="Sleveless_Top" red="0.34" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="Blue MiniSkirt Tanktop Tennis">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.95" green="0.72" name="Tanktop" red="0.34" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Mini_Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="Blue MiniSkirt Tshirt Tennis">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.95" green="0.72" name="Tshirt" red="0.34" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Mini_Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="Blue MiniSkirt Sleeveless Tennis">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.95" green="0.72" name="Sleveless_Top" red="0.34" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Mini_Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <!-- === Pink tops === -->
+        <Outfit name="Pink Skirt Tanktop Tennis">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.71" green="0.41" name="Tanktop" red="1.0" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="Pink Skirt Tshirt Tennis">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.71" green="0.41" name="Tshirt" red="1.0" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="Pink Skirt Sleeveless Tennis">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.71" green="0.41" name="Sleveless_Top" red="1.0" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="Pink MiniSkirt Tanktop Tennis">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.71" green="0.41" name="Tanktop" red="1.0" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Mini_Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="Pink MiniSkirt Tshirt Tennis">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.71" green="0.41" name="Tshirt" red="1.0" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Mini_Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="Pink MiniSkirt Sleeveless Tennis">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.71" green="0.41" name="Sleveless_Top" red="1.0" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Mini_Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <!-- === Mint/teal tops === -->
+        <Outfit name="Mint Skirt Tanktop Tennis">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.65" green="0.85" name="Tanktop" red="0.4" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="Mint Skirt Tshirt Tennis">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.65" green="0.85" name="Tshirt" red="0.4" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="Mint Skirt Sleeveless Tennis">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.65" green="0.85" name="Sleveless_Top" red="0.4" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="Mint MiniSkirt Tanktop Tennis">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.65" green="0.85" name="Tanktop" red="0.4" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Mini_Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="Mint MiniSkirt Tshirt Tennis">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.65" green="0.85" name="Tshirt" red="0.4" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Mini_Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+        <Outfit name="Mint MiniSkirt Sleeveless Tennis">
+            <UpperBody>
+                <Item alpha="0.95" blue="0.65" green="0.85" name="Sleveless_Top" red="0.4" />
+            </UpperBody>
+            <LowerBody>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Mini_Skirt" red="0.95" />
+            </LowerBody>
+            <Feet>
+                <Item alpha="0.95" blue="0.95" green="0.95" name="Sneakers" palpha="0.95" pattern="Pattern_1" pblue="1" pgreen="1" pred="1" red="0.95" />
+            </Feet>
+            <Accessories />
+        </Outfit>
+    </OverwearSets>
+</Wardrobe>
