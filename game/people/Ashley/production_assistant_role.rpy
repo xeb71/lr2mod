@@ -259,6 +259,7 @@ label quest_essential_oils_decision_label(the_person):
 label prod_assistant_unlock_auras_label(the_person):
     "You walk into the production room. When you do, [the_person.possessive_title] notices you and waves you over to her desk."
     $ the_person.draw_person()
+    $ mc.business.event_triggers_dict["mc_serum_aura_unlocked"] = True
     the_person "Hey [the_person.mc_title]. I heard about the essential oils. I'm sure they will help out with business profitability!"
     if the_person == ashley:
         the_person "Dealing with them made me get curious a bit. Would it be possible to replicate the supposed results of essential oils?"

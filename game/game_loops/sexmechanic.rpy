@@ -59,7 +59,7 @@ label fuck_person(the_person, private= True, start_position = None, start_object
         if girl_in_charge:
             if not position_choice is None and position_choice.skill_tag == "Foreplay" and not mc.recently_orgasmed and not first_round and not position_locked:
                 # girl has got you hard again, now let her pick an actual sex position (clear foreplay position)
-                if not the_person.vagina_visible: # lets see if she is willing to go further
+                if not the_person.vagina_visible and not is_cheating_at_home_condition(condition): # lets see if she is willing to go further
                     $ the_person.strip_outfit_to_max_sluttiness()
                 $ position_choice = None
 
@@ -292,7 +292,7 @@ label fuck_person(the_person, private= True, start_position = None, start_object
                             else:
                                 $ position_choice = None
                         elif not position_locked: #Nothing major has happened that requires us to change positions, we can have girls take over, strip
-                            if self_strip and not stop_stripping:
+                            if self_strip and not stop_stripping and not is_cheating_at_home_condition(condition):
                                 call girl_strip_event(the_person, position_choice, object_choice) from _call_girl_strip_event_bugfix
 
                             if girl_in_charge and position_choice is not None: # girls in charge and wants to spice things up
@@ -345,7 +345,8 @@ label fuck_person(the_person, private= True, start_position = None, start_object
 
             elif not position_locked and the_person.energy >= 30 and (the_person.arousal_perc > 70) and (report_log.get("girl orgasms", 0) == 0) and report_log.get("beg finish", 0) == 0: #Within 30 of orgasming and she hasn't cum yet
                 # They're close to their orgasm and beg you to help them finish.
-                $ the_person.strip_outfit_to_max_sluttiness()
+                if not is_cheating_at_home_condition(condition):
+                    $ the_person.strip_outfit_to_max_sluttiness()
                 $ the_person.call_dialogue("sex_beg_finish")
                 menu:
                     "Give her what she wants":
@@ -426,6 +427,10 @@ label fuck_person(the_person, private= True, start_position = None, start_object
             if the_person.relationship in relationship_stats and the_person.love >= relationship_stats[the_person.relationship] - 10 - (the_person.opinion.cheating_on_men * 5):
                 if the_person.effective_sluttiness() >= 30 - (the_person.opinion.cheating_on_men * 5):
                     call affair_check(the_person, report_log) from _call_affair_check_fuck_person
+
+    if is_cheating_at_home_condition(condition):
+        $ the_person.apply_planned_outfit()
+        $ mc.location.show_background()
 
     python:
         # Only activate sexting when we have her number

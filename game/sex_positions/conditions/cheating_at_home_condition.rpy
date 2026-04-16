@@ -19,6 +19,29 @@ init -1 python:
             return False
         return True
 
+    def is_cheating_at_home_condition(condition):
+        return isinstance(condition, Condition_Type) and condition.name.startswith("cheating_at_home_")
+
+    def get_cheating_at_home_room_choice(condition):
+        if not is_cheating_at_home_condition(condition):
+            return None
+        return condition.name.removeprefix("cheating_at_home_")
+
+    def show_cheating_at_home_background(the_person, the_condition):
+        room_choice = get_cheating_at_home_room_choice(the_condition)
+        if room_choice == "bathroom":
+            background_name = "Home_Bathroom_Background"
+        elif room_choice == "kitchen":
+            background_name = "Kitchen_Background"
+        elif room_choice == "bedroom":
+            background_name = the_person.bedroom.background_name
+        else:
+            return
+
+        background = bg_manager.background(background_name)
+        if background is not None:
+            renpy.show(name = mc.location.name, what = background, layer = "master")
+
     def _standing_position_blacklist():
         """Return a list of positions that require standing (Stand or Lean)."""
         return [p for p in list_of_positions
@@ -35,6 +58,7 @@ init -1 python:
 
         cond = Condition_Type(
             "cheating_at_home_" + room_choice,
+            pre_label = "cheating_at_home_pre_label",
             post_label=post,
             position_blacklist=blacklist,
         )
@@ -45,6 +69,11 @@ init -1 python:
         # condition_vars[2]: int – bathroom/kitchen: orgasm count seen at end of previous round
         cond.condition_vars.append(0)
         return cond
+
+
+label cheating_at_home_pre_label(the_person, the_position, the_object, report_log, the_condition):
+    $ show_cheating_at_home_background(the_person, the_condition)
+    return
 
 
 # ── Location choice label ────────────────────────────────────────────────

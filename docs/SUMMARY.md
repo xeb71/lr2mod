@@ -25,6 +25,8 @@ The MC uses start-up capital (a home equity loan from his mother) to found a ser
 | **Fetish System** | Fetish serums unlock specific fetish arcs (Anal, Cum, Breeding, Exhibition) for characters. |
 | **Strip Club** | The player can acquire and manage a strip club, assigning characters to roles (dancer, waitress, BDSM performer, manager). |
 | **University** | A university setting that unlocks mid-game, with student and professor characters and obedience story arcs. |
+| **Sex Toys** | A research-and-manufacture system for sex toys. The player researches `ToyBlueprint` nodes (a tiered tech tree), designs `ToyDesign` objects by adding `ToyAttribute` modules, and prints finished `ToyItem` units using 3D printers managed via an Engineering division. Toys can be installed on NPCs or used manually; attributes add capabilities such as GPS tracking, diagnostics (pregnancy detection), remote intensity control, and vibration. The **Sex Toy Admin** HUD (`sex_toy_admin_app.rpy`) lets the MC monitor all installed devices, adjust intensity, and view NPC statistics (use count, orgasms, switch-off events). |
+| **InstaPic & Photo Snapshots** | A social-media photo storyline system. NPCs (initially Lily, then Jennifer) can unlock an **InstaPic** role that lets them post photos, receive comments, and exchange DMs with the MC. The player can request specific outfits (underwear, topless, nude) via DMs, save received photos to a persistent **Photo Album** (accessible from the in-game phone's internet menu), and scroll back through a character's full photo history. An **OnlyFanatics** role extends the system with a subscription-based content tier. |
 | **Game Speed** | Four configurable speeds (Quick / Standard / Epic / Marathon) control inter-event timing delays (Tier 0–3). |
 
 ### Named Characters (22+)
@@ -53,7 +55,8 @@ lr2/
 │   │   │                            #   Story_Tracker, Personality, Relationship,
 │   │   │                            #   Appointment, ActiveJob, Scene/ProgressionScene
 │   │   ├── business_related/        # Business, Contract, ProductionLine,
-│   │   │                            #   Policy, Infraction, Punishment
+│   │   │                            #   Policy, Infraction, Punishment,
+│   │   │                            #   ToyBlueprint/ToyDesign/ToyAttribute/ToyItem/Printer
 │   │   ├── serum_related/           # SerumDesign, SerumTrait, SerumTraitBlueprint,
 │   │   │                            #   SerumInventory + individual serum trait files
 │   │   ├── clothing_related/        # Clothing, Outfit, Wardrobe, Expression,
@@ -76,12 +79,13 @@ lr2/
 │   │   └── sexmechanic*.rpy         # Sex scene state machine and position logic
 │   │
 │   ├── game_screens/                # Ren'Py screen definitions (UI)
-│   │   ├── business_screens/        # Company overview, employee management, policies
+│   │   ├── business_screens/        # Company overview, employee management, policies,
+│   │   │                            #   engineering (toy blueprint/design/printer UI)
 │   │   ├── character_screens/       # Character info, story progress, relationship views
 │   │   ├── clothing_screens/        # Wardrobe and outfit management
 │   │   ├── configuration_screens/   # Game settings and preferences
 │   │   ├── serum_management_screens/# Serum design, blueprint, and inventory screens
-│   │   ├── hud_screens/             # In-game HUD overlays
+│   │   ├── hud_screens/             # In-game HUD overlays (incl. sex_toy_admin_app)
 │   │   ├── hints/                   # Context-sensitive hint system
 │   │   ├── subscreens/              # Reusable sub-screen components
 │   │   └── tooltip_screens/         # Tooltip definitions
@@ -103,7 +107,9 @@ lr2/
 │   ├── game_roles/                  # Role system (employee, pregnant, strip club, etc.)
 │   │   ├── business_roles/          # Employee, intern, secretary, clone roles
 │   │   ├── pregnant_roles/          # Pregnancy state roles
-│   │   └── stripclub/               # Strip club performer roles
+│   │   ├── stripclub/               # Strip club performer roles
+│   │   └── role_insta_definition_ren.py  # InstaPic / OnlyFanatics role logic,
+│   │                                #   DM actions, photo-history management
 │   │
 │   ├── helper_functions/            # Utility / helper modules
 │   │   ├── business_related/        # Business-logic helpers

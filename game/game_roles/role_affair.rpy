@@ -55,6 +55,23 @@ label plan_fuck_date_label(the_person):
                 "She pouts and shrugs."
                 mc.name "Let me get back to you when something opens up."
 
+        "Let her pick a random time next week" if the_person.is_affair:
+            mc.name "Pick a time for us next week. Surprise me."
+            $ random_time_slot = get_random_affair_fuck_date_time_slot()
+            if random_time_slot:
+                $ create_fuck_date_action(the_person, random_time_slot)
+                $ planned_time = day_and_time_string(random_time_slot[0], random_time_slot[1])
+                the_person "Perfect. I'll make sure I'm free on [planned_time]."
+                $ mc.change_locked_clarity(10)
+                "She leans in close and smiles."
+                the_person "Just show up ready to use me."
+                $ planned_time = None
+            else:
+                mc.name "Looks like my calendar is packed solid."
+                the_person "Damn. I was already looking forward to sneaking around with you."
+                mc.name "We'll make it happen when something opens up."
+            $ random_time_slot = None
+
         "Maybe some other time":
             mc.name "Damn, that's not going to work for me."
             the_person "Aww, I guess I'll be spending the night alone then..."
@@ -65,7 +82,6 @@ label plan_fuck_date_label(the_person):
 
 label fuck_date_label(the_person):
     #You go to her home and fuck her as much as your energy can support. Small chance her SO either calls or walks in.
-    # Occurs at night. You go to her place.
     "You have a fuck date planned with [the_person.title]."
     menu:
         "Get ready for the date {image=time_advance}":
@@ -98,7 +114,12 @@ label fuck_date_label(the_person):
     the_person "Come on in, the door is unlocked. I'm in the bedroom."
     $ mc.end_text_convo()
     $ aunt_bedroom.show_background()
-    "You go inside. The only light in the house comes from a room with its door ajar. When you swing it open you see [the_person.title] waiting."
+    if time_of_day == 4:
+        "You go inside. The only light in the house comes from a room with its door ajar. When you swing it open you see [the_person.title] waiting."
+    elif time_of_day == 3:
+        "You go inside. Warm light spills from a room with its door ajar. When you swing it open you see [the_person.title] waiting."
+    else:
+        "You go inside and follow the sound of [the_person.title]'s voice to a bedroom with its door left ajar. When you swing it open you see her waiting."
     $ the_person.add_situational_slut("Date", 20, "There's no reason to hold back, he's here to fuck me!") # Bonus to sluttiness since you're in an affair and this is blatantly a date to get fucked on.
 
     if the_person.is_girlfriend:
@@ -126,15 +147,17 @@ label fuck_date_event(the_person): #A breakout function so we can call the fuck_
         the_person "My [the_person.so_title] is home, we have to be careful..."
         $ room_discovered = False
         menu:
-            "Bathroom {size=-4}(Private, but you have to be quiet){/size}":
+            "Bathroom {size=-4}(Private, but you have to be quiet){/size}" if the_person.opinion.cheating_on_men > 0:
                 "You follow [the_person.title] into the bathroom and quietly lock the door behind you."
+                $ home_bathroom.show_background()
                 $ the_person.draw_person()
                 the_person "Keep it down, the walls are thin..."
                 $ mc.change_locked_clarity(15)
                 call fuck_person(the_person, private = True, start_position = kissing) from _call_fuck_person_affair_bathroom
 
-            "Kitchen {size=-4}(No standing up, or you'll be seen){/size}":
+            "Kitchen {size=-4}(Partner may hear you, riskier if you stand up){/size}" if the_person.opinion.cheating_on_men > 0:
                 "You sneak into the kitchen with [the_person.title]. She pulls you down below the counter."
+                $ kitchen.show_background()
                 $ the_person.draw_person(position = "missionary")
                 the_person "Stay low... if we stand up he might see us from the living room."
                 $ mc.change_locked_clarity(15)

@@ -162,11 +162,20 @@ def girlfriend_role_on_day(person: Person):
 def fuck_date_requirement(person: Person):
     if (person == kaya and person.home == sakari.home):  # exclude Kaya story wise
         return False
-    if not mc.has_open_time_slot(time_slot = 4, day_restriction=(2, 3, 4)):
+    if person.is_affair:
+        if not mc.schedule.get_open_time_slots(time_restriction = (1, 2, 3, 4)):
+            return "Already planned dates!"
+    elif not mc.has_open_time_slot(time_slot = 4, day_restriction=(2, 3, 4)):
         return "Already planned dates!"
     if person.is_girlfriend and person.effective_sluttiness() < 60:
         return "Requires: 60 Sluttiness"
     return True
+
+def get_random_affair_fuck_date_time_slot() -> tuple[int, int] | None:
+    open_slot_list = mc.schedule.get_open_time_slots(time_restriction = (1, 2, 3, 4))
+    if len(open_slot_list) == 0:
+        return None
+    return get_random_from_list(open_slot_list)
 
 def shopping_date_requirement(person: Person):
     if time_of_day == 0:

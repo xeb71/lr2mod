@@ -1,7 +1,6 @@
 import renpy
 from renpy.rollback import NoRollback
 from renpy.display.im import Image
-from game.bugfix_additions.debug_info_ren import write_log
 """renpy
 IF FLAG_OPT_IN_ANNOTATIONS:
     rpy python annotations
@@ -52,7 +51,7 @@ class BackGroundManager(NoRollback):
         '''
         for bg in (x for x in renpy.exports.list_files() if path in x):
             if not _is_valid_image_file(bg):
-                write_log(f"INFO BackGroundManager: Skipping '{bg}' – not a valid image file.")
+                print(f"INFO BackGroundManager: Skipping '{bg}' – not a valid image file.")
                 continue
             # extract filename without extension
             name = os.path.splitext(os.path.basename(bg))[0]
@@ -73,7 +72,7 @@ class BackGroundManager(NoRollback):
                               "Main_Office_Background", "CEO_Office_Background"):
                 if _fallback in BackGroundManager.bg_list:
                     BackGroundManager.bg_list["Engineering_Background"] = BackGroundManager.bg_list[_fallback]
-                    write_log(f"INFO BackGroundManager: Using '{_fallback}' as fallback for missing Engineering_Background.")
+                    print(f"INFO BackGroundManager: Using '{_fallback}' as fallback for missing Engineering_Background.")
                     break
 
     def background(self, name: str) -> Image:
@@ -83,7 +82,7 @@ class BackGroundManager(NoRollback):
         '''
         result = BackGroundManager.bg_list.get(name)
         if result is None:
-            write_log(f"WARNING background(): No background image found for '{name}'.")
+            print(f"WARNING background(): No background image found for '{name}'.")
         return result
 
 bg_manager = BackGroundManager()

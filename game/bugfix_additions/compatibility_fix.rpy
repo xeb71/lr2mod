@@ -220,6 +220,13 @@ init -5 python:
             if not hasattr(person, "like_anal"):
                 person.like_anal = 0
 
+        # Older saves could learn the Essential Oils trait while the aura-serum
+        # category flag remained unset. If Essential Oils is already known,
+        # restore the missing aura category unlock.
+        if not mc.business.event_triggers_dict.get("mc_serum_aura_unlocked", False):
+            if essential_oil_trait in list_of_traits:
+                mc.business.event_triggers_dict["mc_serum_aura_unlocked"] = True
+
         # Aunt Rebecca dislikes vaginal stimulation initially (-5). Clamp saves
         # that received the generic 0 default so her story arc is preserved.
         # Only reset when exactly 0 (the generic init value) — do NOT touch saves
@@ -348,6 +355,14 @@ init -5 python:
         # (engineering_design_action_description, engineering_attribute_research_action_description)
         # pick up the current combined engineering_research_action_description.
         globals()["e_division"].actions = ActionList(engineering_division_actions())
+
+        # Old mid-sex saves may have serialized cheating-at-home conditions before
+        # they started assigning room-specific backgrounds. Patch the live
+        # condition object so loading into those scenes picks up the new visuals.
+        if "condition" in globals() and is_cheating_at_home_condition(condition):
+            condition.pre_label = "cheating_at_home_pre_label"
+            if room_choice := get_cheating_at_home_room_choice(condition):
+                condition.post_label = f"cheating_at_home_post_{room_choice}"
 
         # Update _e_div to point to the real engineering division.
         # Older saves (or saves that used the old compat code) had _e_div = _h_div (office).

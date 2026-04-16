@@ -208,7 +208,7 @@ label get_fucked(the_person, the_goal = None, sex_path = None, private= True, st
                     $ the_clothing = choose_strip_sex_position_item(the_person, position = sex_path[0].position)
                     if the_clothing:
                         $ current_node.position.call_strip(the_person, the_clothing, mc.location, object_choice)
-                else:
+                elif not is_cheating_at_home_condition(condition):
                     call girl_strip_event(the_person, sex_path[0].position, object_choice) from _call_girl_strip_event_girl_in_charge_01
 
     #TODO create positive feedback here for accomplishing sex goal
@@ -309,6 +309,10 @@ label get_fucked(the_person, the_goal = None, sex_path = None, private= True, st
         elif report_log.get("girl orgasms", 0) - start_girl_orgasm == 0 and the_person.energy > 50 and the_person.arousal_perc > 60:
             the_person "Ah, shit, I'm so horny, I need to get off."
             call get_fucked(the_person, the_goal = "get off", private = private, skip_intro = True, report_log = report_log, ignore_taboo = ignore_taboo, prohibit_tags = prohibit_tags, unit_test = unit_test, condition = condition, allow_continue = False) from GIC_keeps_going_04
+
+    if is_cheating_at_home_condition(condition):
+        $ the_person.apply_planned_outfit()
+        $ mc.location.show_background()
 
     python:
         condition.run_rewards(the_person, report_log)

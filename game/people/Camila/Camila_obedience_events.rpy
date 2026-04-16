@@ -128,7 +128,7 @@ label camila_obedience_ass_man_label(the_person):  #180 obedience
     call mc_change_to_private_location(the_person) from _call_mc_change_to_private_location_camila_obedience_ass_man
     "The family restroom again. She locks the door behind you."
     mc.name "Turn around."
-    "[the_person.possessive_title!c] eyebrows go up, but she complies without a word."
+    "[the_person.title!c]'s eyebrows go up, but she complies without a word."
     "[the_person.title] plants her hands against the wall, arching her back slightly, presenting herself to you."
     mc.name "Stay just like that."
     $ the_person.strip_outfit(exclude_upper = True)
