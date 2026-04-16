@@ -1,4 +1,4 @@
-LR2-MOD Extension
+LR2-MOD XEB-Extension
 
 Huge amount of small to medium changes made.
 Be sure to enable "Ask a favour"
