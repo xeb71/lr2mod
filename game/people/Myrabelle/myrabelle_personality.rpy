@@ -1096,10 +1096,9 @@ label myrabelle_sex_watch(the_person, the_sex_person, the_position):
         return True
 
     $ the_person.draw_person(emotion = "happy", display_transform = character_left_flipped)
-    if renpy.random.randint(0, 1) == 0:
+    call watcher_position_comment(the_person, the_sex_person, the_position) from _call_watcher_position_comment_myrabelle_sex_watch
+    if not _return:
         the_person "Come on [the_person.mc_title], you can give her a little more than that. I'm sure she can handle it."
-    else:
-        call watcher_position_comment(the_person, the_sex_person, the_position) from _call_watcher_position_comment_myrabelle_sex_watch
     "[title] watches eagerly while you and [the_sex_person.fname] [the_position.verb]."
     return True
 

@@ -53,6 +53,12 @@ renpy.image("full_star_token_small", full_star_token_small_image)
 empty_star_token_small_image = At(Image(get_file_handle("favourite_star_empty.png")), small_icon)
 renpy.image("empty_star_token_small", empty_star_token_small_image)
 
+full_crown_token_small_image = At(Image(get_file_handle("queen_crown_filled.png")), small_icon)
+renpy.image("full_crown_token_small", full_crown_token_small_image)
+
+empty_crown_token_small_image = At(Image(get_file_handle("queen_crown_empty.png")), small_icon)
+renpy.image("empty_crown_token_small", empty_crown_token_small_image)
+
 harem_token_small_image = At(Image(get_file_handle("harem.png")), small_icon)
 renpy.image("harem_token_small", harem_token_small_image)
 

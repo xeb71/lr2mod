@@ -243,7 +243,14 @@ label scene_anal_standing_2(the_girl, the_location, the_object):
             else:
                 the_girl "It better... I can't believe I let you talk me into this..."
         "Talk Dirty":
-            mc.name "I love how your ass gets so stretched out with my cock fucking it."
+            $ _dirty_talk = renpy.random.choice([
+                "I love how your ass gets so stretched out with my cock fucking it.",
+                "Your ass was made for this. It feels so fucking good around my cock.",
+                "Keep pushing back against me. Take every inch in that tight ass.",
+                "You have no idea how good your ass feels right now. I could do this forever.",
+                "Tell me how much you love it. Tell me how much you love being fucked in the ass.",
+            ])
+            mc.name "[_dirty_talk]"
             if the_girl.has_role(anal_fetish_role):
                 $ play_moan_sound()
                 "[the_girl.possessive_title!c] moans enthusiastically. She wiggles her hips back and forth, caressing your dick with her forbidden hole."

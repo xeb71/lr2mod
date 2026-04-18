@@ -1155,9 +1155,8 @@ label introvert_sex_watch(the_person, the_sex_person, the_position):
     $ the_person.draw_person(emotion = "happy", display_transform = character_left_flipped)
     # the_person "Come on [the_person.mc_title], [the_sex_person.fname] is going to fall asleep at this rate! You're going to have to give her a little more than that."
     "[title] watches excitedly while you and [the_sex_person.fname] [the_position.verb]. She whispers under her breath, almost to herself."
-    if renpy.random.randint(0, 1) == 0:
-        call watcher_position_comment(the_person, the_sex_person, the_position) from _call_watcher_position_comment_intovert_sex_watch
-    else:
+    call watcher_position_comment(the_person, the_sex_person, the_position) from _call_watcher_position_comment_intovert_sex_watch
+    if not _return:
         the_person "Come on, give it to her. Harder..."
     return True
 

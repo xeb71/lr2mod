@@ -57,7 +57,14 @@ label scene_doggy_1(the_girl, the_location, the_object):
     $ the_girl.call_dialogue("sex_responses_vaginal")
     menu:
         "Talk dirty to her":
-            mc.name "How does that feel? Do you like getting railed from behind?"
+            $ _dirty_talk = renpy.random.choice([
+                "How does that feel? Do you like getting railed from behind?",
+                "I love watching you take it like this. You look perfect from back here.",
+                "Tell me how much you like it. I want to hear you say it.",
+                "You're so wet right now. Does getting taken from behind really turn you on this much?",
+                "Don't run from it. Push back against me and take it deeper.",
+            ])
+            mc.name "[_dirty_talk]"
             if the_girl.is_submissive:
                 $ the_girl.discover_opinion("being submissive")
                 the_girl "Ah... I love it..."

@@ -24,7 +24,9 @@ init -1 python:
 
     def get_cheating_at_home_room_choice(condition):
         if not is_cheating_at_home_condition(condition):
-            return None
+            return getattr(condition, "cheating_room_choice", None)
+        if hasattr(condition, "cheating_room_choice"):
+            return condition.cheating_room_choice
         return condition.name.removeprefix("cheating_at_home_")
 
     def show_cheating_at_home_background(the_person, the_condition):

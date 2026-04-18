@@ -1338,11 +1338,17 @@ label mom_convince_quit_label(the_person):
                     pass
 
 
-                "You can be MY personal secretary\n{menu_red}Hires to HR{/menu_red}" if the_person.has_job(mom_secretary_job):
-                    mc.name "Seeing you advance in your career has made it clear to me, I need a personal secretary of my own."
-                    mc.name "You can keep doing basically what you are doing now, but for me."
-                    the_person "Oh? You mean I could keep doing HR work?"
-                    mc.name "I mean, yeah... ALL the things you are doing now."
+                "You can be MY personal secretary\n{menu_red}Hires to HR{/menu_red}":
+                    if the_person.has_job(mom_secretary_job):
+                        mc.name "Seeing you advance in your career has made it clear to me, I need a personal secretary of my own."
+                        mc.name "You can keep doing basically what you are doing now, but for me."
+                        the_person "Oh? You mean I could keep doing HR work?"
+                        mc.name "I mean, yeah... ALL the things you are doing now."
+                    else:
+                        mc.name "I want you to come work for me as my personal secretary."
+                        mc.name "You would help me with HR work and anything else I need taken care of."
+                        the_person "Oh? You mean I would work close by? Right outside your office?"
+                        mc.name "That's right. I'd trust you with anything important."
                     "[the_person.title] hesitates for a moment. While you don't say it explicitly, she seems to understand that it might include her sexual duties to her boss."
                     the_person "I mean... if I'm doing HR work..."
                     the_person "Ah what the hell. I'll do it!"
@@ -1353,9 +1359,6 @@ label mom_convince_quit_label(the_person):
                     $ the_person.event_triggers_dict["personal_sec"] = True
                     $ the_person.event_triggers_dict["mandate_bc"] = False
                     $ add_mom_new_employee_first_day_action()
-
-                "You can be MY personal secretary\n{menu_red}Requires: Jennifer is Secretary{/menu_red} (disabled)" if not the_person.has_job(mom_secretary_job):
-                    pass
 
                 "I'll pay you more than they do":
                     mc.name "I can pay you double what you're earning right now [the_person.title]."

@@ -89,7 +89,14 @@ label scene_facing_wall_1(the_girl, the_location, the_object):
                     "Her ass quivers slightly as you spank her. It feels great around your cock."
                 "After you finish her spanking, you grab her hips and resume your fucking."
             "Talk Dirty":
-                mc.name "I love the way it sounds when I fuck you. Hear it?"
+                $ _dirty_talk = renpy.random.choice([
+                    "I love the way it sounds when I fuck you. Hear it?",
+                    "You're so wet right now. I can hear how much you're enjoying this.",
+                    "That sound... that's the sound of me owning your pussy.",
+                    "Listen to that. Your body is begging for more.",
+                    "Everyone nearby can hear what a slut you're being. Does that excite you?",
+                ])
+                mc.name "[_dirty_talk]"
                 "You thrust yourself back into her forcefully, her ass smacking against your hips with a loud smack."
                 $ play_moan_sound()
                 "[the_girl.possessive_title!c] moans and pushes herself back against you."

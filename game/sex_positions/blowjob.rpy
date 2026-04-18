@@ -104,7 +104,14 @@ label scene_blowjob_1(the_girl, the_location, the_object):
         call blowjob_comment(the_girl, the_location, the_object) from call_blowjob_comment_scene_blowjob_1_2
         menu:
             "Talk dirty to her":
-                mc.name "That feels great [the_girl.title]. You look good on your knees, sucking my cock."
+                $ _dirty_talk = renpy.random.choice([
+                    f"That feels great {the_girl.title}. You look good on your knees, sucking my cock.",
+                    f"God, your mouth feels incredible. Keep going just like that, {the_girl.title}.",
+                    f"You're so good at this, {the_girl.title}. I love watching you work.",
+                    f"Look up at me while you do that, {the_girl.title}. I want to see your face.",
+                    f"Those lips were made for this, {the_girl.title}.",
+                ])
+                mc.name "[_dirty_talk]"
                 if the_girl.opinion.giving_blowjobs > 0:
                     "She slides your cock out of her mouth to speak."
                     the_girl "Mmm, and you feel so good in my mouth. You're so big I can barely manage."

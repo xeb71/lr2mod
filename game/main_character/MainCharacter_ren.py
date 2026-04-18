@@ -107,6 +107,9 @@ class MainCharacter():
         #The maximum score you can have in each of the major skill categories
         #Can be enhanced by Perks (permanent or temporary)
         self.max_stats = 8
+        self.max_charisma_bonus = 0
+        self.max_int_bonus = 0
+        self.max_focus_bonus = 0
         self.max_work_skills = 8
         self.max_sex_skills = 8
         self.max_energy_cap = 200
@@ -525,6 +528,36 @@ class MainCharacter():
         point_cost = builtins.int(100 * (2 ** (self.clarity_purchase_level / 2)))
         return builtins.int(point_cost)
 
+    @property
+    def max_charisma(self) -> int:
+        return self.max_stats + getattr(self, "max_charisma_bonus", 0)
+
+    @property
+    def max_intelligence(self) -> int:
+        return self.max_stats + getattr(self, "max_int_bonus", 0)
+
+    @property
+    def max_focus(self) -> int:
+        return self.max_stats + getattr(self, "max_focus_bonus", 0)
+
+    def improve_stat_cap(self, stat_name: Literal["int", "cha", "foc"], cost: int = 3, amount: int = 1):
+        if stat_name not in ("int", "cha", "foc"):
+            return False
+
+        total_cost = cost * amount
+        if total_cost > self.free_stat_points:
+            return False
+
+        if stat_name == "int":
+            self.max_int_bonus = getattr(self, "max_int_bonus", 0) + amount
+        elif stat_name == "cha":
+            self.max_charisma_bonus = getattr(self, "max_charisma_bonus", 0) + amount
+        elif stat_name == "foc":
+            self.max_focus_bonus = getattr(self, "max_focus_bonus", 0) + amount
+
+        self.free_stat_points -= total_cost
+        return True
+
     def improve_stat(self, stat_name: Literal["int", "cha", "foc"], amount: int = 1):
         if stat_name not in ("int", "cha", "foc"):
             return TypeError
@@ -532,13 +565,16 @@ class MainCharacter():
         if amount > self.free_stat_points:
             amount = self.free_stat_points
         if stat_name == "int":
+            amount = min(amount, max(self.max_intelligence - self.int, 0))
             self.int += amount
         elif stat_name == "cha":
+            amount = min(amount, max(self.max_charisma - self.charisma, 0))
             self.charisma += amount
         elif stat_name == "foc":
+            amount = min(amount, max(self.max_focus - self.focus, 0))
             self.focus += amount
 
-        self.free_stat_points += -amount
+        self.free_stat_points -= amount
 
     def improve_work_skill(self, skill_name: Literal["hr", "market", "research", "production", "supply"], amount: int = 1):
         if skill_name not in ("hr", "market", "research", "production", "supply"):

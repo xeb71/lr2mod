@@ -67,6 +67,8 @@ def build_menu_item_list(element_list, draw_hearts_for_people = True, draw_perso
             info = []
             if item.is_favourite:
                 info.append("{image=full_star_token_small}")
+            if item.is_queen:
+                info.append("{image=full_crown_token_small}")
             if item.has_exact_role(harem_role):
                 info.append("{image=harem_token_small}")
             if item.has_exact_role(girlfriend_role):

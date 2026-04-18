@@ -44,6 +44,9 @@ def night_time_wardrobe_validation(person: Person):
 def harem_wardrobe_validation(person: Person):
     return person.is_at(harem_hub)
 
+def harem_servant_wardrobe_validation(person: Person):
+    return person.harem_queen is not None
+
 def pool_wardrobe_validation(person: Person):
     return person.is_at(sports_center_pool) or (
         person.is_at(sports_center_hub) and getattr(person, '_location', None) == sports_center_pool.identifier
@@ -83,6 +86,9 @@ def instantiate_limited_wardrobes():
     global harem_wardrobe
     harem_wardrobe = LimitedWardrobe("Harem_Wardrobe", 10, harem_wardrobe_validation, allow_edit = True, allow_personalisation = False, enforce_legal_status = False)
 
+    global harem_servant_wardrobe
+    harem_servant_wardrobe = LimitedWardrobe("Maid_Wardrobe", 15, harem_servant_wardrobe_validation, allow_edit = False, allow_personalisation = False, enforce_legal_status = False)
+
     global limited_pool_wardrobe
     limited_pool_wardrobe = LimitedWardrobe("Default_Pool_Wardrobe", 6, pool_wardrobe_validation, allow_personalisation = True, sluttiness_alpha = True)
 
@@ -95,6 +101,7 @@ def instantiate_limited_wardrobes():
         sex_shop_wardrobe,
         mom_home_wardrobe,
         night_time_wardrobe,
+        harem_servant_wardrobe,
         harem_wardrobe,
         limited_pool_wardrobe,
         limited_tennis_wardrobe,

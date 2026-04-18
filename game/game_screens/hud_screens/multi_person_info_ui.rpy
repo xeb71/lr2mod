@@ -62,6 +62,7 @@ screen actor_info_block(actor):
 
             text format_titles_short(actor.person) style "menu_text_style" size 30 ysize 30
             use favourite_toggle_button(actor.person)
+            use queen_toggle_button(actor.person)
 
             if actor.person.serum_tolerance == 0:
                 textbutton "{image=serum_vial3}":

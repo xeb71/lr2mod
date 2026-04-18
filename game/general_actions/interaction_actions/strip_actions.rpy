@@ -342,6 +342,14 @@ label pay_strip_scene(the_person):
     return
 
 init 1 python:
+    def strip_tease_is_touching(guy_state):
+        return guy_state == "touching" or guy_state == "fingering"
+
+    def get_strip_tease_description_state(guy_state):
+        if guy_state == "fingering":
+            return "touching"
+        return guy_state
+
     def get_strip_tease_menu_options(person, guy_state, girl_state):
         action_options = ["Do something..."]
         command_options = ["Say something..."]
@@ -354,12 +362,16 @@ init 1 python:
             action_options.append(("Keep jerking off", "continue"))
         elif guy_state == "touching":
             action_options.append(("Keep feeling her up", "continue"))
+        elif guy_state == "fingering":
+            action_options.append(("Keep fingering her", "continue"))
 
         if girl_state.allows_jerking and not guy_state == "jerking" and mc.arousal_perc > 20:
             action_options.append(("Pull your cock out", "start_jerking"))
 
-        if girl_state.allows_touching and not guy_state == "touching":
+        if girl_state.allows_touching and not strip_tease_is_touching(guy_state):
             action_options.append(("Start feeling her up", "start_touching"))
+        if guy_state == "touching" and person.outfit.vagina_visible:
+            action_options.append(("Start fingering her", "start_fingering"))
         #TODO: Maybe a dirty talk state?
 
         ### Build the command actions ###
@@ -429,7 +441,7 @@ label strip_tease(the_person, in_private = True, for_pay = False, start_girl_dir
 
     if not skip_intro:
         $ girl_state.call_pose(the_person, girl_direction)
-        $ girl_state.call_intro(the_person, guy_state = guy_state, for_pay = for_pay)
+        $ girl_state.call_intro(the_person, guy_state = get_strip_tease_description_state(guy_state), for_pay = for_pay)
 
     $ should_continue = True
     while should_continue and not the_person is None:
@@ -445,11 +457,11 @@ label strip_tease(the_person, in_private = True, for_pay = False, start_girl_dir
         elif isinstance(the_choice, StripteasePosition):
             if the_person.effective_sluttiness() >= the_choice.slut_requirement:
                 $ girl_state = the_choice
-                $ girl_state.call_transition(the_person, guy_state, for_pay)
-                if guy_state == "touching" and not girl_state.allows_touching:
-                    $ guy_state == "watching"
+                $ girl_state.call_transition(the_person, get_strip_tease_description_state(guy_state), for_pay)
+                if strip_tease_is_touching(guy_state) and not girl_state.allows_touching:
+                    $ guy_state = "watching"
                 elif guy_state == "jerking" and not girl_state.allows_jerking:
-                    $ guy_state == "watching"
+                    $ guy_state = "watching"
             else:
                 "[the_person.possessive_title!c] shakes her head, unwilling to go any further."
 
@@ -616,6 +628,29 @@ label strip_tease(the_person, in_private = True, for_pay = False, start_girl_dir
 
             $ the_choice = "description"
 
+        elif the_choice == "start_fingering":
+            $ guy_state = "fingering"
+            if girl_direction == "away":
+                "Your hand slips down between [the_person.title]'s thighs. You tease her exposed slit with two fingers, then slowly push them inside."
+            else:
+                "You trail your hand over [the_person.title]'s stomach and between her legs. You rub two fingers over her exposed slit, then ease them inside."
+
+            if the_person.has_taboo("touching_vagina"):
+                $ the_person.call_dialogue("touching_vagina_taboo_break")
+                $ the_person.break_taboo("touching_vagina")
+            elif the_person.opinion.being_fingered > 0:
+                the_person "Mmm, yes... Keep going."
+            elif the_person.opinion.being_fingered < 0:
+                the_person "Ah! That's... more than I expected."
+                "She squirms at the sudden intimacy, but keeps pressing herself against your hand."
+            else:
+                the_person "Oh! Right there..."
+
+            $ play_moan_sound()
+            "You start pumping your fingers in and out of her wet pussy, drawing a needy moan from [the_person.title]."
+            $ the_person.change_arousal(10 + (the_person.opinion.being_fingered * 2))
+            $ the_choice = "description"
+
         elif the_choice == "turn_around":
             if girl_direction == "towards":
                 mc.name "Turn around, I want to see you from behind."
@@ -624,7 +659,7 @@ label strip_tease(the_person, in_private = True, for_pay = False, start_girl_dir
             elif girl_direction == "away":
                 mc.name "Turn around, I don't just want to look at your back."
                 $ girl_direction = "towards"
-            $ girl_state.call_turn_description(the_person, girl_direction, guy_state, for_pay)
+            $ girl_state.call_turn_description(the_person, girl_direction, get_strip_tease_description_state(guy_state), for_pay)
             $ girl_state.call_pose(the_person, girl_direction)
             $ the_choice = "description"
 
@@ -812,11 +847,11 @@ label strip_tease(the_person, in_private = True, for_pay = False, start_girl_dir
 
                 if possible_states:
                     $ girl_state = get_random_from_list(possible_states)
-                    $ girl_state.call_transition(the_person, guy_state, for_pay)
-                    if guy_state == "touching" and not girl_state.allows_touching:
-                        $ guy_state == "watching"
+                    $ girl_state.call_transition(the_person, get_strip_tease_description_state(guy_state), for_pay)
+                    if strip_tease_is_touching(guy_state) and not girl_state.allows_touching:
+                        $ guy_state = "watching"
                     elif guy_state == "jerking" and not girl_state.allows_jerking:
-                        $ guy_state == "watching"
+                        $ guy_state = "watching"
 
             elif girl_action == "start_touching":
                 if the_person.has_taboo("touching_body"):
@@ -841,14 +876,16 @@ label strip_tease(the_person, in_private = True, for_pay = False, start_girl_dir
 
                 elif girl_direction == "away":
                     $ girl_direction = "towards"
-                $ girl_state.call_turn_description(the_person, girl_direction, guy_state, for_pay)
+                $ girl_state.call_turn_description(the_person, girl_direction, get_strip_tease_description_state(guy_state), for_pay)
                 $ girl_state.call_pose(the_person, girl_direction)
 
             $ the_choice = "description" #And then we probably run a description.
 
         if the_choice == "description": #NOTE: Not an else-if, this is always run if the results above call for a description.
             $ guy_energy_cost = girl_state.guy_energy_cost
-            if guy_state == "touching":
+            if guy_state == "fingering":
+                $ guy_energy_cost += 6
+            elif guy_state == "touching":
                 $ guy_energy_cost += 4
             elif guy_state == "jerking":
                 $ guy_energy_cost += 4
@@ -861,8 +898,9 @@ label strip_tease(the_person, in_private = True, for_pay = False, start_girl_dir
                 $ the_person.change_energy(-girl_state.girl_energy_cost)
                 $ mc.change_energy(-guy_energy_cost) #NOTE: Usually 0, but might be higher for specific sex-like positions
 
+                $ description_guy_state = get_strip_tease_description_state(guy_state)
                 $ girl_state.call_pose(the_person, girl_direction)
-                $ girl_state.call_description(the_person, girl_direction, guy_state, for_pay)
+                $ girl_state.call_description(the_person, girl_direction, description_guy_state, for_pay)
 
                 $ clarity_added = (girl_state.girl_arousal_gain/2) + the_person.foreplay_sex_skill #Note that this _isn't_ exponential like actual sex is.
                 if the_person.tits_visible:
@@ -871,7 +909,9 @@ label strip_tease(the_person, in_private = True, for_pay = False, start_girl_dir
                     $ clarity_added += 10
                 if the_person.underwear_visible:
                     $ clarity_added += 5
-                if guy_state == "touching":
+                if guy_state == "fingering":
+                    $ clarity_added += 10
+                elif guy_state == "touching":
                     $ clarity_added += 5
 
                 $ mc.change_locked_clarity(clarity_added)
@@ -884,6 +924,9 @@ label strip_tease(the_person, in_private = True, for_pay = False, start_girl_dir
                 if guy_state == "jerking": #Ideal for adding arousal to yourself
                     $ guy_arousal_change += mc.foreplay_sex_skill + 1 #Add one in case their Foreplay is 0, jerking off should add _something_
                     $ girl_arousal_change += mc.foreplay_sex_skill/2
+                elif guy_state == "fingering":
+                    $ guy_arousal_change += mc.foreplay_sex_skill/2
+                    $ girl_arousal_change += mc.foreplay_sex_skill + 6 + the_person.opinion.being_fingered
                 elif guy_state == "touching": #Adds arousal to _her_. Similar to groping w/ 1 bonus, only your Foreplay.
                     $ girl_arousal_change += mc.foreplay_sex_skill + 1
                 else: #Just watching. YOur foreplay increases her arousal for dirty talk, ect.
@@ -902,7 +945,7 @@ label strip_tease(the_person, in_private = True, for_pay = False, start_girl_dir
                     $ the_choice = "orgasm"
 
         if the_choice == "orgasm": #Note that this is broken out from above in case something else (like an orgasm trigger word) changes her arousal.
-            $ girl_state.call_climax(the_person, guy_state, for_pay) #NOTE: the actual climax states should all include a call to the_person.run_orgasm
+            $ girl_state.call_climax(the_person, get_strip_tease_description_state(guy_state), for_pay) #NOTE: the actual climax states should all include a call to the_person.run_orgasm
             $ the_person.reset_arousal()
 
         if the_choice == "exhausted":
@@ -912,6 +955,8 @@ label strip_tease(the_person, in_private = True, for_pay = False, start_girl_dir
         elif the_choice == "guy_exhausted":
             if guy_state == "jerking":
                 "You're exhausted, and even just jerking off is proving to be too much work."
+            elif guy_state == "fingering":
+                "You're exhausted, and even just fingering [the_person.title] is proving to be too much work."
             elif guy_state == "touching":
                 "You're exhausted, and even just feeling up [the_person.title]'s body is proving to be too much work."
             else:
@@ -1161,6 +1206,8 @@ label strip_tease_remove(the_person, the_clothing, girl_state, girl_direction, g
 label strip_tease_guy_cum(the_person, girl_state, girl_direction, guy_state, for_pay = False): #TODO: The rest of this
     if guy_state == "watching":
         "Watching her is too much for you to handle. You feel your cock tense as you pass the point of no return."
+    elif guy_state == "fingering":
+        "The way her wet pussy squeezes around your fingers is more than you can handle. Your cock twitches, then tenses as it prepares for your climax."
     elif guy_state == "touching":
         "Just feeling up her body is more than you can handle. Your cock twitches, then tenses as it prepares for your climax."
     elif guy_state == "jerking":

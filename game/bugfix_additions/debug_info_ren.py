@@ -102,12 +102,18 @@ def hide_debug_log():
 def write_log(s, *args):
     print(s, *args)
 
+def write_debug_log(s, *args):
+    global debug_log_enabled
+    if debug_log_enabled:
+        write_log(s, *args)
+
 # add info to in-game debug window
 def add_to_debug_log(message, start_time = time.time()):
     global debug_log_enabled
     if debug_log_enabled:
-        debug_log[f"T{time.time()}"] = message.format(total_time = time.time() - start_time)
-    write_log(message.format(total_time = time.time() - start_time))
+        formatted_message = message.format(total_time = time.time() - start_time)
+        debug_log[f"T{time.time()}"] = formatted_message
+        write_log(formatted_message)
 
 def get_debug_log():
     return "\n".join(x[1] for x in sorted(debug_log.items(), key = lambda t: t[0], reverse = True))

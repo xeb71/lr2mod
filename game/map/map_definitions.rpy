@@ -226,7 +226,7 @@ label instantiate_map_locations():
         purgatory = Room("purgatory", "Hospital", "Hospital_Background", purgatory_objects,
             visible = False, lighting_conditions = standard_indoor_lighting)
 
-        prostitute_bedroom = Room("Prostitute Bedroom", "Prostitute Bedroom", "Prostitute_Bedroom_Background", bedroom_objects + [make_love_rug],
+        prostitute_bedroom = Room("Prostitute Bedroom", "Prostitute Bedroom", "Prostitute_Bedroom_Background", bedroom_objects + [make_love_rug()],
             visible = False, lighting_conditions = standard_indoor_lighting)
         generic_bedroom_1 = Room("Generic Bedroom 1", "Bedroom", "Generic_Bedroom1_Background", bedroom_objects,
             visible = False, lighting_conditions = standard_indoor_lighting)

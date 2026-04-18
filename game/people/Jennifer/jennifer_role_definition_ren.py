@@ -185,9 +185,13 @@ def get_mother_role_actions():
 
     mom_breakfast_prog_scene_request_action = Action("Request Breakfast in Bed", mom_breakfast_prog_scene_request_req, "mom_breakfast_prog_scene_request_label")
 
-    return [mom_test_serum_night, mother_offer_make_dinner, mom_work_promotion_two_prep_action, mom_work_bigger_tits_reintro, mom_sister_girlfriend_blessing_action, mom_girlfriend_return_action, fetish_mom_kitchen_action, mom_home_change_wardrobe_action, mom_breakfast_prog_scene_request_action]
+    mom_convince_quit_action = Action("Convince her to quit her job", mom_convince_quit_requirement, "mom_convince_quit_label", priority = -5)
+
+    return [mom_test_serum_night, mother_offer_make_dinner, mom_work_promotion_two_prep_action, mom_work_bigger_tits_reintro, mom_sister_girlfriend_blessing_action, mom_girlfriend_return_action, fetish_mom_kitchen_action, mom_home_change_wardrobe_action, mom_breakfast_prog_scene_request_action, mom_convince_quit_action]
 
 def mom_convince_quit_requirement(person: Person):
+    if not person.has_job((mom_associate_job, mom_secretary_job)):
+        return False
     if person.love < mc.hard_mode_req(10):
         return False
     love_req = mc.hard_mode_req(20)
@@ -196,8 +200,7 @@ def mom_convince_quit_requirement(person: Person):
     return True #Are there any requirements for starting this conversation we need to throw in?
 
 def get_mother_associate_actions():
-    mom_convince_quit_action = Action("Convince her to quit her job", mom_convince_quit_requirement, "mom_convince_quit_label", priority = -5)
-    return [mom_convince_quit_action]
+    return []
 
 def get_mother_associate_role() -> Role:
     return Role("Business Associate", get_mother_associate_actions(), hidden = True)

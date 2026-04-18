@@ -94,7 +94,14 @@ label scene_piledriver_1(the_girl, the_location, the_object):
         "[the_girl.title] holds her legs out wide for you, spreading herself so you can fuck her hard and fast against the [the_object.name]."
         menu:
             "Talk dirty to her":
-                mc.name "You look really good with my cock inside you, did you know that?"
+                $ _dirty_talk = renpy.random.choice([
+                    "You look really good with my cock inside you, did you know that?",
+                    "You're taking it so deep right now. How does that feel?",
+                    "I love this position. I can bury myself so deep inside you.",
+                    "Look at how much you can take. You're incredible.",
+                    "Stay right there. I want to fuck you deep and slow just like this.",
+                ])
+                mc.name "[_dirty_talk]"
                 if the_girl.foreplay_sex_skill > 3: #She's good at foreplay, flirting, etc.
                     "She looks up at you and bites her lip."
                     the_girl "And you look good on top of me... Fucking my poor little pussy raw."

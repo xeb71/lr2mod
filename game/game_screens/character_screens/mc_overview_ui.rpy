@@ -42,18 +42,21 @@ screen mc_character_sheet():
 
                             hbox:
                                 xalign 0.5
-                                text f"Charisma: {mc.charisma}/{max(mc.max_stats, mc.charisma)}" style "menu_text_style" xalign 0.5 yalign 0.5
-                                textbutton "+1" style "textbutton_style" text_style "textbutton_text_style" text_size 14 yoffset -4 xalign 0.5 action Function(mc.improve_stat, "cha") sensitive mc.free_stat_points > 0 and mc.charisma<mc.max_stats yanchor 0.5 yalign 0.5
+                                text f"Charisma: {mc.charisma}/{max(mc.max_charisma, mc.charisma)}" style "menu_text_style" xalign 0.5 yalign 0.5
+                                textbutton "+1" style "textbutton_style" text_style "textbutton_text_style" text_size 14 yoffset -4 xalign 0.5 action Function(mc.improve_stat, "cha") sensitive mc.free_stat_points > 0 and mc.charisma < mc.max_charisma yanchor 0.5 yalign 0.5
+                                textbutton "Increase Max Charisma (3)" style "textbutton_style" text_style "textbutton_text_style" text_size 14 yoffset -4 xalign 0.5 action Function(mc.improve_stat_cap, "cha") sensitive mc.free_stat_points >= 3 yanchor 0.5 yalign 0.5
 
                             hbox:
                                 xalign 0.5
-                                text f"Intelligence: {mc.int}/{max(mc.max_stats, mc.int)}" style "menu_text_style" xalign 0.5 yalign 0.5
-                                textbutton "+1" style "textbutton_style" text_style "textbutton_text_style" text_size 14 yoffset -4 xalign 0.5 action Function(mc.improve_stat, "int") sensitive mc.free_stat_points > 0 and mc.int<mc.max_stats yanchor 0.5 yalign 0.5
+                                text f"Intelligence: {mc.int}/{max(mc.max_intelligence, mc.int)}" style "menu_text_style" xalign 0.5 yalign 0.5
+                                textbutton "+1" style "textbutton_style" text_style "textbutton_text_style" text_size 14 yoffset -4 xalign 0.5 action Function(mc.improve_stat, "int") sensitive mc.free_stat_points > 0 and mc.int < mc.max_intelligence yanchor 0.5 yalign 0.5
+                                textbutton "Increase Max Intelligence (3)" style "textbutton_style" text_style "textbutton_text_style" text_size 14 yoffset -4 xalign 0.5 action Function(mc.improve_stat_cap, "int") sensitive mc.free_stat_points >= 3 yanchor 0.5 yalign 0.5
 
                             hbox:
                                 xalign 0.5
-                                text f"Focus: {mc.focus}/{max(mc.max_stats, mc.focus)}" style "menu_text_style" xalign 0.5 yalign 0.5
-                                textbutton "+1" style "textbutton_style" text_style "textbutton_text_style" text_size 14 yoffset -4 xalign 0.5 action Function(mc.improve_stat, "foc") sensitive mc.free_stat_points > 0 and mc.focus<mc.max_stats yanchor 0.5 yalign 0.5
+                                text f"Focus: {mc.focus}/{max(mc.max_focus, mc.focus)}" style "menu_text_style" xalign 0.5 yalign 0.5
+                                textbutton "+1" style "textbutton_style" text_style "textbutton_text_style" text_size 14 yoffset -4 xalign 0.5 action Function(mc.improve_stat, "foc") sensitive mc.free_stat_points > 0 and mc.focus < mc.max_focus yanchor 0.5 yalign 0.5
+                                textbutton "Increase Max Focus (3)" style "textbutton_style" text_style "textbutton_text_style" text_size 14 yoffset -4 xalign 0.5 action Function(mc.improve_stat_cap, "foc") sensitive mc.free_stat_points >= 3 yanchor 0.5 yalign 0.5
 
                     use mc_goal_bar(mc.stat_goal)
 

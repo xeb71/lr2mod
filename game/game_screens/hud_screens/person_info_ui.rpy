@@ -117,6 +117,7 @@ screen person_info_ui(person): #Used to display stats for a person while you're 
                 hbox:
                     text format_titles(person) style "menu_text_style" size 30
                     use favourite_toggle_button(person)
+                    use queen_toggle_button(person)
                     if has_unknown_normal_opinions or has_unknown_sexy_opinions:
                         imagebutton:
                             offset (12, 8)

@@ -123,6 +123,24 @@ init 1 python:
         menu_tooltip = "Ask her to start an official, polyamorous relationship and be part of your Harem.", priority = 10)
     chat_actions.append(make_harem_action)
 
+    def get_assignable_harem_queens(person):
+        return [x for x in list_of_people if x != person and x.is_queen]
+
+    def assign_harem_servant_requirement(person):
+        if not person.in_harem or person.is_queen:
+            return False
+        if person.opinion.being_submissive <= 1:
+            return False
+        if person.harem_queen:
+            return "Locked: Already serving a queen"
+        if not get_assignable_harem_queens(person):
+            return False
+        return True
+
+    assign_harem_servant_action = Action("Assign as servant", requirement = assign_harem_servant_requirement, effect = "assign_harem_servant_label",
+        menu_tooltip = "Assign this submissive harem girl to serve one of your queens. Reassigning a queen to a new servant releases her old one back to normal duties.")
+    command_actions.append(assign_harem_servant_action)
+
     def move_into_harem(person):
         # set up relationship between harem girls
         for harem_girl in (x for x in list_of_people if x.home == harem_mansion):
@@ -324,4 +342,61 @@ label harem_move_to_mansion_label(the_person):
     mc.name "Perfect, I've already made arrangements, I will see you at my new mansion soon."
 
     $ move_into_harem(the_person)
+    return
+
+label assign_harem_servant_label(the_person):
+    $ queen_list = get_assignable_harem_queens(the_person)
+    if not queen_list:
+        mc.name "Never mind, I don't have a queen for you to serve right now."
+        the_person "Alright, just let me know if that changes."
+        return
+
+    mc.name "[the_person.title], I have a new place for you in my harem."
+    the_person "Yes [the_person.mc_title]?"
+    $ queen_menu = get_sorted_people_list(queen_list, "Serve which queen?", "Back")
+    call screen main_choice_display(build_menu_items([queen_menu]))
+    $ the_queen = _return
+
+    if not isinstance(the_queen, Person):
+        mc.name "Never mind."
+        the_person "Of course."
+        return
+
+    $ old_servant = the_queen.harem_servant
+    mc.name "Are you sure?"
+    "If you assign [the_person.title] as [the_queen.title]'s servant, she'll be with her all the time. They'll even sleep together."
+    if old_servant and old_servant != the_person:
+        "If you go through with this, [old_servant.title] will be released and go back to her normal duties."
+    "Once assigned, [the_person.title] will only go back to her normal duties if [the_queen.title] is uncrowned or another servant is assigned to her."
+    menu:
+        "Yes, assign her.\n{menu_green}This makes her [the_queen.title]'s full-time servant until the queen is uncrowned or replaced with another servant.{/menu_green}":
+            pass
+        "No, leave things as they are":
+            mc.name "Never mind."
+            the_person "Of course."
+            return
+
+    mc.name "From now on, you'll serve [the_queen.title]."
+    if the_person.assign_harem_servant(the_queen):
+        $ the_person.change_stats(happiness = 3, obedience = 5)
+        $ the_queen.change_stats(happiness = 2)
+        if not the_person.is_at(the_queen.location):
+            $ the_person.change_location(the_queen.location)
+        else:
+            $ the_person.apply_planned_outfit(show_dress_sequence = False)
+        the_person "Mmm, yes [the_person.mc_title]. I'll be a good servant for my queen."
+        if old_servant and old_servant != the_person:
+            $ old_servant.apply_planned_outfit(show_dress_sequence = False)
+            if old_servant.is_at(mc.location):
+                $ old_servant.draw_person()
+                old_servant "Understood. I'll return to my normal duties."
+            else:
+                mc.name "[old_servant.fname] will return to her normal duties."
+        if the_queen.is_at(mc.location):
+            the_queen "Good. I'll make sure she remembers her place."
+        else:
+            mc.name "Good girl. I'll let [the_queen.fname] know."
+    else:
+        mc.name "Forget it, this isn't going to work right now."
+        the_person "Alright."
     return

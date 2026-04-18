@@ -850,6 +850,14 @@ init -5 python:
                 renpy.store.limited_pool_wardrobe = _pool_lw
                 write_log("[pool compat] set limited_pool_wardrobe store variable")
 
+        # Ensure the servant limited wardrobe exists for old saves.
+        if not any(getattr(w, 'validation_func', None) == harem_servant_wardrobe_validation for w in limited_wardrobes):
+            write_log("[servant compat] adding servant wardrobe to limited_wardrobes")
+            limited_wardrobes.append(LimitedWardrobe("Maid_Wardrobe", 15, harem_servant_wardrobe_validation, allow_edit = False, allow_personalisation = False, enforce_legal_status = False))
+
+        if not hasattr(renpy.store, 'harem_servant_wardrobe') or renpy.store.harem_servant_wardrobe is None:
+            renpy.store.harem_servant_wardrobe = next((w for w in limited_wardrobes if getattr(w, 'validation_func', None) == harem_servant_wardrobe_validation), None)
+
         # Clear any per-person cached tennis/pool outfits so the new transparency
         # factor is recomputed on the next visit (relevant when loading old saves
         # that cached outfits before sluttiness_alpha was enabled).

@@ -78,7 +78,14 @@ label scene_anal_on_lap_2(the_girl, the_location, the_object):
         "Empowered by her encouragement, you speed up, pounding her hole with wild abandon. The sound of her ass clapping against you crescendos, filling you with primal lust."
         menu:
             "Talk dirty":
-                mc.name "Take it bitch! I'm gonna destroy your tight little asshole."
+                $ _dirty_talk = renpy.random.choice([
+                    "Take it bitch! I'm gonna destroy your tight little asshole.",
+                    "Your ass is so tight around my cock. Can you feel every inch inside you?",
+                    "Ride me harder. Show me how much you love having your ass stuffed full.",
+                    "You're taking every inch so well. Such a good little anal slut.",
+                    "Does it hurt? Good. Keep riding until I'm done with you.",
+                ])
+                mc.name "[_dirty_talk]"
                 if the_girl.is_submissive:
                     $ the_girl.discover_opinion("being submissive")
                     $ play_moan_sound()

@@ -64,6 +64,7 @@ screen person_info_detailed(person):
                         hbox:
                             text format_titles(person) style "menu_text_style" size 30 xalign 0.5 yalign 0.5 yanchor 0.5 color person.char.who_args["color"] font person.char.what_args["font"]
                             use favourite_toggle_button(person)
+                            use queen_toggle_button(person)
                         text "Job: [person_job_info]" style "menu_text_style" xalign 0.5 yalign 0.5 yanchor 0.5
                         if visible_roles:
                             text "Special Roles: [visible_roles]" style "menu_text_style" xalign 0.5 yalign 0.5 yanchor 0.5

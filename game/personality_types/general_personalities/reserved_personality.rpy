@@ -1208,10 +1208,9 @@ label reserved_sex_watch(the_person, the_sex_person, the_position):
         return True
 
     $ the_person.draw_person(emotion = "happy", display_transform = character_left_flipped)
-    if renpy.random.randint(0, 1) == 0:
+    call watcher_position_comment(the_person, the_sex_person, the_position) from _call_watcher_position_comment_reserved_sex_watch
+    if not _return:
         the_person "Glad to see you two are having a good time. [the_person.mc_title], careful you aren't too rough with her."
-    else:
-        call watcher_position_comment(the_person, the_sex_person, the_position) from _call_watcher_position_comment_reserved_sex_watch
     "[title] watches quietly while you and [the_sex_person.fname] [the_position.verb]."
     return True
 

@@ -147,7 +147,14 @@ label scene_against_wall_2(the_girl, the_location, the_object):
 
 
         "Talk dirty to her":
-            mc.name "Do you like this, you dirty slut? Do you like getting fucked against the [the_object.name]?"
+            $ _dirty_talk = renpy.random.choice([
+                f"Do you like this, you dirty slut? Do you like getting fucked against the {the_object.name}?",
+                f"Look at you... pinned against the {the_object.name} while I fuck you senseless.",
+                f"You're so wet. Does getting pinned against the {the_object.name} turn you on that much?",
+                f"Tell me you want it. Tell me you want me to keep fucking you against this {the_object.name}.",
+                f"I could keep you against this {the_object.name} all night. You'd love that, wouldn't you?",
+            ])
+            mc.name "[_dirty_talk]"
             if the_girl.is_dominant:
                 $ the_girl.discover_opinion("being submissive")
                 $ the_girl.change_arousal(the_girl.opinion.being_submissive)

@@ -148,7 +148,6 @@ def add_stripclub_strippers():
         alpha_stripper.age = 28
 
     if alpha_stripper:
-        print(f"Converted stripper {alpha_stripper.name} to alpha personality.")
         alpha_stripper.change_personality(alpha_personality)
         alpha_stripper.charisma = 5
         alpha_stripper.int = 6

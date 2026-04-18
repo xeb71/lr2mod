@@ -93,6 +93,9 @@ init -2 python:
         date_list = [[lunch_date_action, person], [movie_date_action, person], [dinner_date_action, person], [bar_date_action, person]]
         for extra_date in list_of_additional_phone_dates:
             date_list.append((extra_date, person))
+        for a_role in getattr(person, "special_role", []) or []:
+            for a_date in getattr(a_role, "role_dates", []):
+                date_list.append((a_date, person))
 
         date_list.insert(0, "Select Date")
         date_list.append(("Never mind", None))

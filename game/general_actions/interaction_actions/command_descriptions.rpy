@@ -895,11 +895,16 @@ label make_onlyfans_together_label(the_person):
         the_person "Sure! Just make sure you finish. My customers pay way better if there's a good cumshot, okay?"
         mc.name "I aim to please."
 
-    if not mc.location.is_private:
-        "You find a private area with [the_person.possessive_title] where you won't be disturbed."
-        call mc_change_to_private_location(the_person) from _call_mc_change_to_private_location_make_only_fans
+    if is_cheating_at_home(the_person):
+        call cheating_at_home_room_choice(the_person) from _call_cheating_at_home_room_choice_onlyfans
+        $ _onlyfans_condition = make_condition_onlyfans_recording(_return)
+    else:
+        if not mc.location.is_private:
+            "You find a private area with [the_person.possessive_title] where you won't be disturbed."
+            call mc_change_to_private_location(the_person) from _call_mc_change_to_private_location_make_only_fans
+        $ _onlyfans_condition = make_condition_onlyfans_recording()
 
-    call fuck_person(the_person, private = True, condition = make_condition_onlyfans_recording()) from _call_fuck_person_make_onlyfans_command_01
+    call fuck_person(the_person, private = True, condition = _onlyfans_condition) from _call_fuck_person_make_onlyfans_command_01
     "You hand [the_person.possessive_title]'s phone back to her."
     mc.name "If you want to make another video sometime, just let me know."
     the_person "Sure thing!"

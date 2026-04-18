@@ -96,7 +96,14 @@ label scene_breeding_missionary_1(the_girl, the_location, the_object):
                 $ the_girl.change_arousal(the_girl.opinion.cheating_on_men * 2)
 
         "Talk dirty to her":
-            mc.name "You feel amazing, [the_girl.title]. I'm going to fuck you like this every day, and fill you with my seed over and over."
+            $ _dirty_talk = renpy.random.choice([
+                f"You feel amazing, {the_girl.title}. I'm going to fuck you like this every day, and fill you with my seed over and over.",
+                f"Your body was made for this, {the_girl.title}. Made for me to breed you properly.",
+                f"I'm going to fill you up, {the_girl.title}. Every drop goes inside you.",
+                f"Look at you, {the_girl.title}... legs spread, ready to take my seed. You were made for this.",
+                f"I'm not going to stop, {the_girl.title}. I'm going to breed you over and over.",
+            ])
+            mc.name "[_dirty_talk]"
             if the_girl.knows_pregnant:
                 mc.name "I've knocked you up, but I'm not going to stop there. I'm going to fuck you over and over, and fill you up over and over, even as your belly grows."
             else:

@@ -18,7 +18,14 @@ label scene_cum_fetish_blowjob_1(the_girl, the_location, the_object):
     "She moans slightly as she strokes you with her soft, velvet lips."
     menu:
         "Talk dirty to her":
-            mc.name "You are such a good cum slut. You are so eager to suck that cum straight out of me, aren't you?"
+            $ _dirty_talk = renpy.random.choice([
+                "You are such a good cum slut. You are so eager to suck that cum straight out of me, aren't you?",
+                "I can see how badly you want it. Such a hungry little cum slut.",
+                "You look so desperate for my cum. Tell me how much you want it.",
+                "I love how much you want this. Keep going and I'll give you every drop.",
+                "That look in your eyes... you're absolutely obsessed with my cum, aren't you?",
+            ])
+            mc.name "[_dirty_talk]"
             "[the_girl.possessive_title!c] strokes you a few more times with her skilled mouth. She twirls her tongue around the tip a few times before taking a second to respond."
             the_girl "Mmm, it's been too long since you fed me... I can't wait to feel your cum sliding down my throat..."
             the_girl "... or maybe I'll pull off and stroke you while you cover my face in your hot cum..."

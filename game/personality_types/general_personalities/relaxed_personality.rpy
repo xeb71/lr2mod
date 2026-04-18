@@ -1179,29 +1179,69 @@ label watcher_position_comment(the_person, the_girl, the_position):
         $ pronoun = renpy.random.choice(choices)
 
     if the_position == spanking:
-        the_person "Slap that [pronoun]'s ass!"
-        return
+        $ line = renpy.random.choice([
+            "Slap that [pronoun]'s ass!",
+            "Yeah, smack that [pronoun] nice and hard!",
+            "Give that [pronoun]'s ass another slap!"
+        ])
+        the_person "[line]"
+        return True
     if the_position == handjob:
-        the_person "Oh, yes, come on girl, pump that beautiful cock."
-        return
+        $ line = renpy.random.choice([
+            "Oh, yes, come on girl, pump that beautiful cock.",
+            "Mmm, stroke it faster, girl.",
+            "That's it, work that cock with your hand."
+        ])
+        the_person "[line]"
+        return True
     if the_position == standing_dildo:
-        the_person "Hmmm, yes, shove it in real deep, that [pronoun] loves it!"
-        return
+        $ line = renpy.random.choice([
+            "Hmmm, yes, shove it in real deep, that [pronoun] loves it!",
+            "Oh yeah, push that toy all the way into her.",
+            "Mmm, stuff that [pronoun] full of it!"
+        ])
+        the_person "[line]"
+        return True
     if the_position in (blowjob, deepthroat, skull_fuck, cum_fetish_blowjob, cowgirl_blowjob, ophelia_blowjob):
-        the_person "Mmm, yes, fuck that [pronoun] down her throat!"
-        return
+        $ line = renpy.random.choice([
+            "Mmm, yes, fuck that [pronoun] down her throat!",
+            "That's it, make that [pronoun] swallow every inch.",
+            "Oh, yes, use that [pronoun]'s throat."
+        ])
+        the_person "[line]"
+        return True
     if the_position in (tit_fuck, sarah_tit_fuck):
-        the_person "Oh god, yes, shove your cock between that [pronoun]'s [the_girl.tits_description]."
-        return
+        $ line = renpy.random.choice([
+            "Oh god, yes, shove your cock between that [pronoun]'s [the_girl.tits_description].",
+            "Mmm, rub it all over those [the_girl.tits_description].",
+            "Yes, use that [pronoun]'s tits like they were made for it."
+        ])
+        the_person "[line]"
+        return True
     if the_position in (cunnilingus, standing_oral, cowgirl_cunnilingus):
-        the_person "Hmmm, yes, lick that [pronoun]'s little clit."
-        return
+        $ line = renpy.random.choice([
+            "Hmmm, yes, lick that [pronoun]'s little clit.",
+            "Oh, yes, make that [pronoun] squirm with your tongue.",
+            "Mmm, keep eating that sweet little pussy."
+        ])
+        the_person "[line]"
+        return True
     if the_position in (bent_over_breeding, breeding_missionary):
-        the_person 'Oh yes, pump that [pronoun] full with your cum!'
-        return
+        $ line = renpy.random.choice([
+            "Oh yes, pump that [pronoun] full with your cum!",
+            "Yes, fill that [pronoun] up nice and deep!",
+            "Mmm, breed that [pronoun] properly!"
+        ])
+        the_person "[line]"
+        return True
     if the_position in (piledriver_dp, doggy_anal_dildo_dp):
-        the_person "Mmmm, yes... slam both her holes hard..."
-        return
+        $ line = renpy.random.choice([
+            "Mmmm, yes... slam both her holes hard...",
+            "Oh fuck, stretch both of that [pronoun]'s holes.",
+            "Yes, stuff that [pronoun] completely full."
+        ])
+        the_person "[line]"
+        return True
 
     if the_position.skill_tag == "Anal":
         $ ran_num = renpy.random.randint(0, 2)
@@ -1211,7 +1251,7 @@ label watcher_position_comment(the_person, the_girl, the_position):
             the_person "Hmmm, yes, shove it deep into her ass [the_person.mc_title]."
         else:
             the_person "Yes, pound that [pronoun]'s ass hard!"
-        return
+        return True
     if the_position.skill_tag == "Vaginal":
         $ ran_num = renpy.random.randint(0, 2)
         if ran_num == 0:
@@ -1220,8 +1260,8 @@ label watcher_position_comment(the_person, the_girl, the_position):
             the_person "Hmmm, yes, give it to her good [the_person.mc_title]."
         else:
             the_person "Yes, make that [pronoun] scream!"
-        return
-    return
+        return True
+    return False
 
 label relaxed_sex_watch(the_person, the_sex_person, the_position):
     $ title = the_person.title if not the_person.is_stranger else "The stranger"
@@ -1255,10 +1295,9 @@ label relaxed_sex_watch(the_person, the_sex_person, the_position):
         return True
 
     $ the_person.draw_person(emotion = "happy", display_transform = character_left_flipped)
-    if renpy.random.randint(0, 1) == 0:
+    call watcher_position_comment(the_person, the_sex_person, the_position) from _call_watcher_position_comment_relaxed_sex_watch
+    if not _return:
         the_person "Come on [the_person.mc_title], you can give her a little more than that. I'm sure she can handle it."
-    else:
-        call watcher_position_comment(the_person, the_sex_person, the_position) from _call_watcher_position_comment_relaxed_sex_watch
     "[title] watches eagerly while you and [the_sex_person.fname] [the_position.verb]."
     return True
 

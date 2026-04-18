@@ -127,7 +127,14 @@ label scene_sixty_nine_1(the_girl, the_location, the_object):
                     pass
             "Focus on you":
                 "You pause your licking to talk dirty to her."
-                mc.name "Wow that feels good. Take it deep, slut!"
+                $ _dirty_talk = renpy.random.choice([
+                    "Wow that feels good. Take it deep, slut!",
+                    "Keep sucking just like that. You taste incredible too.",
+                    "You're so good at this. Don't stop, I'll make sure you cum too.",
+                    "I can feel you moaning on my cock. Does my tongue feel that good?",
+                    "Take it deeper. I want to feel the back of your throat.",
+                ])
+                mc.name "[_dirty_talk]"
                 if the_girl.is_dominant:
                     "[the_girl.possessive_title!c] pulls off you for a second and chuckles."
                     the_girl "[the_girl.mc_title]... I think you've forgotten who is on top!"

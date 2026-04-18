@@ -14,6 +14,13 @@ label fuck_person(the_person, private= True, start_position = None, start_object
         if report_log is None:
             report_log = create_report_log()
 
+        servant_watcher = the_person.harem_servant if the_person.is_queen else None
+        if servant_watcher and servant_watcher != the_person and not servant_watcher.follow_mc:
+            if not servant_watcher.is_at(mc.location):
+                servant_watcher.change_location(mc.location)
+            if the_watcher is None:
+                the_watcher = servant_watcher
+
         watch_list = []
         finished = False #When True we exit the main loop (or never enter it, if we can't find anything to do)
         position_choice = start_position # initialize with start_position (in case girl is in charge or position is locked)
@@ -997,6 +1004,32 @@ label watcher_check(the_person, the_position, the_object, report_log, fixed_watc
         # you only get one chance for starting a threesome per public sex action (avoid spamming threesome question)
         # threesome has no watcher loop, so all watching stops when threesome has started.
         # TODO: add watchers to threesome core
+        # A queen's assigned servant is a special fixed watcher: she follows the queen
+        # and should join the scene as soon as the current position supports a threesome.
+        if not ask_for_threesome and the_watcher and the_person.is_queen and the_watcher.harem_queen == the_person and not the_person.has_role(caged_role):
+            $ ask_for_threesome = True
+            $ the_watcher.draw_person(display_transform = character_left_flipped)
+            if can_join_threesome(the_watcher, the_person, the_position.position_tag):
+                the_watcher "Your queen shouldn't have to enjoy this without her servant."
+                $ scene_manager = Scene()
+                $ scene_manager.add_actor(the_person, the_person.outfit, position = the_position.position_tag)
+                $ scene_manager.add_actor(the_watcher, the_watcher.outfit, display_transform = character_center_flipped)
+                if not the_watcher.vagina_visible:
+                    "You watch as [the_watcher.possessive_title] strips down to properly serve her queen."
+                    $ scene_manager.strip_to_vagina(the_watcher)
+                call join_threesome(the_person, the_watcher, the_position.position_tag, private = private, report_log = report_log) from _call_join_threesome_servant_check
+                $ scene_manager.update_actor(the_watcher, position = "default", display_transform = character_left_flipped)
+                the_watcher "Thank you for letting me serve, my queen."
+                $ scene_manager.apply_outfit(the_watcher)
+                $ scene_manager.update_actor(the_watcher, position = "default", display_transform = character_left_flipped)
+                $ scene_manager.update_actor(the_person, position = "default", display_transform = character_right)
+                $ report_log = _return
+                $ the_watcher = None
+                $ finished = True
+                return
+            else:
+                $ ask_for_threesome = False
+
         if not ask_for_threesome and willing_to_threesome(the_person, the_watcher) and not the_person.has_role(caged_role):
             $ the_watcher.draw_person(display_transform = character_left_flipped)
             the_watcher "Oh my god, that looks amazing..."
@@ -1078,13 +1111,17 @@ label walk_in_watcher_check(the_person, the_position, the_object, report_log):
     if the_person == camila and mc.is_at(downtown_bar_bathroom):
         return
 
+    # Fixed watchers (like a queen's assigned servant) are intentionally allowed
+    # even in private locations that normally block random walk-ins.
+    if isinstance(the_watcher, Person):
+        call watcher_check(the_person, the_position, the_object, report_log, fixed_watcher = the_watcher) from _call_watcher_check_fixed_watcher
+        return
+
     # not a valid location for walk in
     if not mc.location.allow_walk_in:
         return
 
-    if isinstance(the_watcher, Person):
-        call watcher_check(the_person, the_position, the_object, report_log, fixed_watcher = the_watcher) from _call_watcher_check_walk_in
-    elif renpy.random.randint(0, 100) < 3:
+    if renpy.random.randint(0, 100) < 3:
         $ the_watcher = get_random_from_list([person for x in mc.current_location_hub for person in x.people if person.is_available and person != the_person])
         if the_watcher:
             $ the_watcher.change_location(mc.location)
@@ -1160,10 +1197,9 @@ label relationship_sex_watch(the_person, the_watcher, the_relation, the_position
         return True
 
     $ the_watcher.draw_person(emotion = "happy", display_transform = character_left_flipped)
-    if renpy.random.randint(0, 1) == 0:
+    call watcher_position_comment(the_watcher, the_person, the_position) from _call_watcher_position_comment_relationship_sex_watch
+    if not _return:
         the_watcher "Glad to see you two are having a good time. [the_watcher.mc_title], careful you aren't too rough with my [the_relation]."
-    else:
-        call watcher_position_comment(the_watcher, the_person, the_position) from _call_watcher_position_comment_relationship_sex_watch
     "[title] watches quietly while you and her [the_relation] [the_position.verb]."
     return True
 
@@ -1383,13 +1419,13 @@ label girl_strip_event(the_person, the_position, the_object):
         return  # nothing to strip (based on position, improves flow of sex loop)
 
     python:
-        ran_num = the_person.effective_sluttiness() - the_person.outfit.outfit_slut_score
+        ran_num = (the_person.effective_sluttiness() // 2) - the_person.outfit.outfit_slut_score
         ran_num += (the_person.opinion.not_wearing_anything - 2) * 5
         if not mc.location.is_private:  # less chance when not private (based on public sex opinion)
             ran_num += (the_person.opinion.public_sex - 2) * 10
 
     if renpy.random.randint(0,100) < ran_num and the_clothing:
-        if renpy.random.randint(0,50) < the_person.obedience - the_person.arousal:
+        if renpy.random.randint(0,50) < the_person.obedience - the_person.arousal + 10:
             $ the_position.call_strip_ask(the_person, the_clothing, mc.location, the_object)
         else:
             $ the_position.call_strip(the_person, the_clothing, mc.location, the_object) #If a girl's outfit is less slutty than she is currently feeling (with arousal factored in) she will want to strip stuff off.
@@ -1541,6 +1577,7 @@ label describe_girl_climax(the_person, the_position, the_object, private, report
         # Reduce arousal for the second orgasm using the same progressive formula.
         $ the_person.change_arousal(-builtins.max(the_person.arousal/(report_log.get("girl orgasms", 0)+2)+20, the_person.arousal - the_person.max_arousal - 1))
         $ report_log["girl orgasms"] = report_log.get("girl orgasms", 0) + 1
+        $ report_log["girl squirts"] = report_log.get("girl squirts", 0) + 1
         # She squirts from the intense double orgasm.
         $ _pt = the_person.possessive_title
         $ _PT = capitalize_first_word(_pt)

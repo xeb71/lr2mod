@@ -118,8 +118,6 @@ def convert_field_override(self, value, conversion):
 # HOOK FOR DIFFERENT SDK VERSIONS
 try:
     dummy = renpy.substitutions.Formatter()
-    print("Using old conversion function")
     renpy.substitutions.Formatter.convert_field = convert_field_override
 except:
     renpy.substitutions.convert = convert_override
-    print("Using new conversion function")

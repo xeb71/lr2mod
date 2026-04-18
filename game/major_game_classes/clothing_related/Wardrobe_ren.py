@@ -566,8 +566,6 @@ class Wardrobe(): #A bunch of outfits!
         if file_name is None:
             return
 
-        print(f"Load wardrobe {file_name}")
-
         self.filename = xml_filename
         tree_root = ET.parse(file_name).getroot()
 

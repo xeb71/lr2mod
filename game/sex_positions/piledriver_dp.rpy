@@ -72,7 +72,14 @@ label scene_piledriver_dp_1(the_girl, the_location, the_object):
     "You hold yourself in deep. Her holes are completely stuffed. She reaches up and grabs her ankles, helping to hold them apart."
     menu:
         "Talk dirty to her":
-            mc.name "You take cock like a champ. I bet you would love it if there were another cock to stuff your throat too, wouldn't you?"
+            $ _dirty_talk = renpy.random.choice([
+                "You take cock like a champ. I bet you would love it if there were another cock to stuff your throat too, wouldn't you?",
+                "Both of your holes stuffed and you're still taking more. What a perfect little slut.",
+                "Look at you, taking two cocks at once. You were built for this.",
+                "You feel even tighter with both holes filled. Does it feel good having me this deep?",
+                "I love how greedy you are. Every hole stuffed and you're still begging for more.",
+            ])
+            mc.name "[_dirty_talk]"
             if the_girl.opinion.threesomes >= 0:
                 "She looks up at you and bites her lip."
                 if the_girl.obedience > 170:  #Basically a slave

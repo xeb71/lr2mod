@@ -149,7 +149,14 @@ label scene_anal_swing_2(the_girl, the_location, the_object):
                 the_girl "That feels nice, but it feels better when you focus on fucking me."
             "You kiss her neck one more time, then move your hands back to the swing straps and continue fucking her. She gives a little yelp when you pinch one of her nipples."
         "Talk Dirty":
-            mc.name "I love to fuck your ass. It's so tight! You make such a great butt slut."
+            $ _dirty_talk = renpy.random.choice([
+                "I love to fuck your ass. It's so tight! You make such a great butt slut.",
+                "You look so perfect in that swing, taking my cock in your ass.",
+                "Your tight little ass feels incredible. I'm going to be thinking about this all week.",
+                "God, your ass is amazing. I could spend hours fucking it just like this.",
+                "The way you take my cock back there... I can't get enough of it.",
+            ])
+            mc.name "[_dirty_talk]"
             if the_girl.has_role(anal_fetish_role):
                 $ play_moan_sound()
                 "[the_girl.possessive_title!c] moans enthusiastically. She reaches back with one hand and grabs your hip, urging you to fuck her harder."

@@ -52,7 +52,14 @@ label scene_missionary_1(the_girl, the_location, the_object):
                 "You kiss her one last time, then divert all of your attention to making love."
 
         "Talk dirty to her":
-            mc.name "You feel amazing [the_girl.title], I wish I could fuck you like this all day."
+            $ _dirty_talk = renpy.random.choice([
+                f"You feel amazing {the_girl.title}, I wish I could fuck you like this all day.",
+                f"Look at me, {the_girl.title}. I want to see your face while I fuck you.",
+                f"You're so beautiful like this, {the_girl.title}. Completely beneath me.",
+                f"Tell me what you want, {the_girl.title}. Say the words and I'll give it to you.",
+                f"I love having you like this, {the_girl.title}. You're completely at my mercy.",
+            ])
+            mc.name "[_dirty_talk]"
             if the_girl.sluttiness > 60 or the_girl.is_submissive:
                 the_girl "Then do it. Pin me against the [the_object.name] and fuck me all you want."
                 "She wraps her legs around your waist and pulls you deep inside her. The tight, warm feeling of her cunt makes your cock twitch."

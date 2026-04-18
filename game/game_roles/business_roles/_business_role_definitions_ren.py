@@ -172,11 +172,15 @@ def employee_on_turn(person: Person):
         return
 
     happy_points = person.current_job.job_happiness_score
-    if (person.obedience < 220 and happy_points < 0
+    if (happy_points < 0
             and person.has_event_delay("last_quit_crisis_day", 7)
             and person.current_job.days_employed > 6):
 
-        if not mc.business.has_queued_crisis("quitting_crisis_label") and renpy.random.randint(0, 100) < happy_points * -2: #She is quitting
+        quit_chance = happy_points * -2
+        if person.is_pregnant:
+            quit_chance = int(quit_chance / 2)
+
+        if not mc.business.has_queued_crisis("quitting_crisis_label") and renpy.random.randint(0, 100) < quit_chance: #She is quitting
             mc.business.add_mandatory_crisis(
                 Action(f"{person.name} {person.last_name} is quitting",
                     quitting_crisis_requirement,

@@ -14,7 +14,7 @@ from renpy.display.layout import Flatten
 from renpy.text.text import Text
 from game.game_loops.sexmechanic_code_ren import _character_position_filter
 from game.random_lists_ren import build_generic_weighted_list, get_random_copy_from_named_list, get_random_from_weighted_list, index_in_weighted_list, is_in_weighted_list
-from game.bugfix_additions.debug_info_ren import validate_texture_memory, write_log
+from game.bugfix_additions.debug_info_ren import validate_texture_memory, write_debug_log, write_log
 from game.bugfix_additions.mapped_list_ren import generate_identifier
 from game.helper_functions.character_display_functions_ren import clear_scene
 from game.helper_functions.convert_to_string_ren import SO_relationship_to_title, capitalize_first_word, girl_relationship_to_title, opinion_score_to_string, remove_punctuation
@@ -1339,6 +1339,55 @@ class Person(PersonStatMixin): #Everything that needs to be known about a person
         self.is_favourite = not self.is_favourite
 
     @property
+    def can_be_queen(self) -> bool:
+        return self.in_harem and self.opinion.taking_control > 1
+
+    @property
+    def is_queen(self) -> bool:
+        return self.can_be_queen and self.event_triggers_dict.get("harem_queen", False)
+
+    @property
+    def harem_queen(self) -> Person | None:
+        return Person.get_person_by_identifier(self.event_triggers_dict.get("harem_queen_person", None))
+
+    @property
+    def harem_servant(self) -> Person | None:
+        return Person.get_person_by_identifier(self.event_triggers_dict.get("harem_servant_person", None))
+
+    def clear_harem_service(self):
+        queen = self.harem_queen
+        servant = self.harem_servant
+        self.event_triggers_dict["harem_queen_person"] = None
+        self.event_triggers_dict["harem_servant_person"] = None
+
+        if queen:
+            queen.event_triggers_dict["harem_servant_person"] = None
+        if servant:
+            servant.event_triggers_dict["harem_queen_person"] = None
+
+    def assign_harem_servant(self, queen: Person) -> bool:
+        if (not self.in_harem
+                or self.is_queen
+                or self.opinion.being_submissive <= 1
+                or not queen.is_queen
+                or queen == self):
+            return False
+        self.clear_harem_service()
+        queen.clear_harem_service()
+        self.event_triggers_dict["harem_queen_person"] = queen.identifier
+        queen.event_triggers_dict["harem_servant_person"] = self.identifier
+        return True
+
+    def toggle_queen(self):
+        if not self.can_be_queen:
+            return
+        if self.is_queen:
+            self.event_triggers_dict["harem_queen"] = False
+            self.clear_harem_service()
+            return
+        self.event_triggers_dict["harem_queen"] = True
+
+    @property
     def is_home(self) -> bool:
         return self.is_at(self.home)
 
@@ -1482,6 +1531,10 @@ class Person(PersonStatMixin): #Everything that needs to be known about a person
                   any(j.person.is_at_job(j.job_definition) for j in self.active_jobs) if hasattr(self, 'active_jobs') else "?")
 
         self._set_location(destination)
+
+        servant = self.harem_servant
+        if servant and not servant.is_at(destination):
+            servant.change_location(destination)
 
         # only change outfit when not following mc
         if self.follow_mc:
@@ -1667,7 +1720,7 @@ class Person(PersonStatMixin): #Everything that needs to be known about a person
 
     @property
     def in_harem(self) -> bool:
-        return self.has_role(harem_role)
+        return self.has_role(harem_role.role_name)
 
     @property
     def is_girlfriend(self) -> bool:
@@ -2060,6 +2113,15 @@ class Person(PersonStatMixin): #Everything that needs to be known about a person
         #Now we will normalize happiness towards 100 over time. Every 5 points of happiness above or below 100 results in a -+1 per turn, rounded towards 0.
         self.change_happiness(-builtins.int((self.happiness - 100) / 5.0), add_to_log = False) #Apply the change
 
+        servant = self.harem_servant
+        if servant:
+            if self.arousal < 30:
+                self.change_arousal(30 - self.arousal, add_to_log = False)
+            self.change_happiness(1, add_to_log = False)
+            if not self.had_sex_today:
+                self.run_orgasm(show_dialogue = False, add_to_log = False, fire_event = False, reset_arousal = False, sex_with_man = False)
+                servant.change_stats(obedience = 1, slut = 1, add_to_log = False)
+
         # dominant person slowly bleeds obedience on run_day (lowest point offset by love)
         if self.is_dominant and self.obedience - self.love > 100 - (self.opinion.taking_control * 10):
             self.change_obedience(-1, add_to_log = False)
@@ -2248,9 +2310,15 @@ class Person(PersonStatMixin): #Everything that needs to be known about a person
                 time.sleep(.1)
             self.apply_daily_outfit_bonus(self.planned_outfit)
 
-        destination = self.get_destination()
-        if not destination: #None destination means they have free time so pick a random
-            destination = self.get_random_destination()
+        queen = self.harem_queen
+        if queen:
+            destination = queen.get_destination() or queen.location or queen.home
+            if not destination:
+                destination = self.get_destination() or self.get_random_destination()
+        else:
+            destination = self.get_destination()
+            if not destination: #None destination means they have free time so pick a random
+                destination = self.get_random_destination()
 
         if not self.is_at(destination): # only call move_person when location changed
             # changing outfits is handled by change_location
@@ -3499,40 +3567,40 @@ class Person(PersonStatMixin): #Everything that needs to be known about a person
             return False
 
         if self.current_job.forced_uniform:
-            write_log("[should_wear_uniform] %s: YES forced_uniform for job '%s'",
-                      self.name, self.current_job.job_definition.job_title)
+            write_debug_log("[should_wear_uniform] %s: YES forced_uniform for job '%s'",
+                            self.name, self.current_job.job_definition.job_title)
             return True
 
         if self.is_at_job(waitress_job):    # jobs with mandatory clothing but no specific uniform
-            write_log("[should_wear_uniform] %s: YES waitress_job", self.name)
+            write_debug_log("[should_wear_uniform] %s: YES waitress_job", self.name)
             return True
 
         wardrobe = self.current_job.wardrobe
         if not wardrobe or not wardrobe.has_outfits:
-            write_log("[should_wear_uniform] %s: NO - job '%s' has no wardrobe/outfits (wardrobe=%s has_outfits=%s)",
-                      self.name, self.current_job.job_definition.job_title,
-                      wardrobe.name if wardrobe else "None",
-                      wardrobe.has_outfits if wardrobe else "N/A")
+            write_debug_log("[should_wear_uniform] %s: NO - job '%s' has no wardrobe/outfits (wardrobe=%s has_outfits=%s)",
+                            self.name, self.current_job.job_definition.job_title,
+                            wardrobe.name if wardrobe else "None",
+                            wardrobe.has_outfits if wardrobe else "N/A")
             return False
 
         if self.is_at_job((stripper_job, stripclub_stripper_job, stripclub_waitress_job, stripclub_bdsm_performer_job, stripclub_manager_job, stripclub_mistress_job)):
             result = not strip_club_is_closed()
-            write_log("[should_wear_uniform] %s: stripclub job -> %s", self.name, result)
+            write_debug_log("[should_wear_uniform] %s: stripclub job -> %s", self.name, result)
             return result
 
         if (self.is_employee or self.is_intern) and self.is_at_office:
             # only when uniform policy is active
             if not strict_uniform_policy.is_active:
-                write_log("[should_wear_uniform] %s: NO - at office but strict_uniform_policy not active", self.name)
+                write_debug_log("[should_wear_uniform] %s: NO - at office but strict_uniform_policy not active", self.name)
                 return False
             # Casual Fridays for employees only
             if day % 7 == 4 and casual_friday_uniform_policy.is_active:
-                write_log("[should_wear_uniform] %s: NO - casual Friday", self.name)
+                write_debug_log("[should_wear_uniform] %s: NO - casual Friday", self.name)
                 return False
 
-        write_log("[should_wear_uniform] %s: YES - job '%s' wardrobe '%s' (overwear=%d outfit=%d underwear=%d)",
-                  self.name, self.current_job.job_definition.job_title,
-                  wardrobe.name, wardrobe.overwear_count, wardrobe.outfit_count, wardrobe.underwear_count)
+        write_debug_log("[should_wear_uniform] %s: YES - job '%s' wardrobe '%s' (overwear=%d outfit=%d underwear=%d)",
+                        self.name, self.current_job.job_definition.job_title,
+                        wardrobe.name, wardrobe.overwear_count, wardrobe.outfit_count, wardrobe.underwear_count)
         return True
 
     @property
@@ -3706,31 +3774,31 @@ class Person(PersonStatMixin): #Everything that needs to be known about a person
         Switches to location / situation specific outfit
         position: only used when show_dress_sequence = True and no scene_manager passed
         '''
-        write_log("[apply_planned_outfit] %s: loc=%s is_at_work=%s current_job=%s",
-                  self.name,
-                  self.location.name if self.location else "None",
-                  self.is_at_work,
-                  self.current_job.job_definition.job_title if self.is_at_work else "N/A")
+        write_debug_log("[apply_planned_outfit] %s: loc=%s is_at_work=%s current_job=%s",
+                        self.name,
+                        self.location.name if self.location else "None",
+                        self.is_at_work,
+                        self.current_job.job_definition.job_title if self.is_at_work else "N/A")
 
         if self.should_wear_uniform or self.should_wear_dress_code:
-            write_log("[apply_planned_outfit] %s: -> UNIFORM path (should_wear_uniform=%s should_wear_dress_code=%s)",
-                      self.name, self.should_wear_uniform, self.should_wear_dress_code)
+            write_debug_log("[apply_planned_outfit] %s: -> UNIFORM path (should_wear_uniform=%s should_wear_dress_code=%s)",
+                            self.name, self.should_wear_uniform, self.should_wear_dress_code)
             self.wear_uniform(position = position, show_dress_sequence = show_dress_sequence, scene_manager = scene_manager)
             return
 
         # Direct tennis outfit check (modeled after nurse uniform approach)
         _tennis = self._get_tennis_outfit()
         if _tennis is not None:
-            write_log("[apply_planned_outfit] %s: -> TENNIS path outfit='%s' (slut=%d)",
-                      self.name, _tennis.name, _tennis.outfit_slut_score)
+            write_debug_log("[apply_planned_outfit] %s: -> TENNIS path outfit='%s' (slut=%d)",
+                            self.name, _tennis.name, _tennis.outfit_slut_score)
             self.apply_outfit(_tennis, ignore_base = ignore_base, update_taboo = update_taboo, show_dress_sequence = show_dress_sequence, scene_manager = scene_manager)
             return
 
         # Direct pool outfit check (same approach as tennis)
         _pool = self._get_pool_outfit()
         if _pool is not None:
-            write_log("[apply_planned_outfit] %s: -> POOL path outfit='%s' (slut=%d)",
-                      self.name, _pool.name, _pool.outfit_slut_score)
+            write_debug_log("[apply_planned_outfit] %s: -> POOL path outfit='%s' (slut=%d)",
+                            self.name, _pool.name, _pool.outfit_slut_score)
             self.apply_outfit(_pool, ignore_base = ignore_base, update_taboo = update_taboo, show_dress_sequence = show_dress_sequence, scene_manager = scene_manager)
             return
 
@@ -3742,15 +3810,15 @@ class Person(PersonStatMixin): #Everything that needs to be known about a person
                       self.name, e, _tb.format_exc())
             _use_limited = False
         if _use_limited:
-            write_log("[apply_planned_outfit] %s: -> LIMITED WARDROBE path", self.name)
+            write_debug_log("[apply_planned_outfit] %s: -> LIMITED WARDROBE path", self.name)
             self.apply_outfit(self.current_planned_outfit, ignore_base = ignore_base, update_taboo = update_taboo, show_dress_sequence = show_dress_sequence, scene_manager = scene_manager)
             return
 
         if not self.planned_outfit: # extra validation to make sure we have a planned outfit
             self.planned_outfit = self.decide_on_outfit()
 
-        write_log("[apply_planned_outfit] %s: -> PLANNED OUTFIT path outfit='%s'",
-                  self.name, self.planned_outfit.name if self.planned_outfit else "None")
+        write_debug_log("[apply_planned_outfit] %s: -> PLANNED OUTFIT path outfit='%s'",
+                        self.name, self.planned_outfit.name if self.planned_outfit else "None")
         self.apply_outfit(self.planned_outfit, ignore_base = ignore_base, update_taboo = update_taboo, show_dress_sequence = show_dress_sequence, scene_manager = scene_manager)
 
     def approves_outfit_color(self, outfit: Outfit) -> bool:
@@ -4820,7 +4888,11 @@ class Person(PersonStatMixin): #Everything that needs to be known about a person
         factor += min(self.charisma / 20.0, .5)
         factor += (self.sluttiness / 4.0) / 100.0   # max 0.25
 
-        return salary * factor * 2
+        profit = salary * factor * 2
+        if self.is_pregnant:
+            profit *= 2
+
+        return profit
 
     def set_schedule(self, location: Room, day_slots: list[int] | None = None, time_slots: list[int] | None = None):
         '''
@@ -5254,6 +5326,9 @@ class Person(PersonStatMixin): #Everything that needs to be known about a person
         if role in self.special_role:
             if role == pregnant_role:   # reset pregnant knows flag
                 self.knows_pregnant = False
+            elif role == harem_role:
+                self.clear_harem_service()
+                self.event_triggers_dict["harem_queen"] = False
             self.special_role.remove(role)
             if remove_linked:
                 for linked_role in role.linked_roles:
