@@ -1,7 +1,10 @@
 LR2-MOD XEB-Extension
 
-Huge amount of small to medium changes made.
-Be sure to enable "Ask a favour"
+Huge amount of small to medium changes made, like:
+  1. Sex toys
+  2. Harem queen
+  3. Photo favours (Be sure to enable "Ask a favour")
+  4. Pool and Tennis
 
 To Install
 
