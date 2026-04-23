@@ -59,6 +59,7 @@ def create_naomi_character():     # initializes her and returns person
             ["pants", -2, False],
             ["high heels", 2, False]],
         forced_sexy_opinions = [
+            ["doggy style sex", 2, False],
             ["taking control", 1, False],
             ["threesomes", 2, False],
             ["giving handjobs", -2, False],
@@ -116,8 +117,22 @@ def naomi_story_other_list():
         other_info_list[2] = "You did not hire [naomi.fname], ending her alternative story."
         return other_info_list
 
-    if naomi.corruption_level < 2:
-        other_info_list[2] = "You will have several opportunities to corrupt your maid [naomi.fname]."
+    other_info_list[2] = "Keep [naomi.fname]'s love negative to stay on her obedient maid route."
+
+    if not naomi.event_triggers_dict.get("naomi_allow_oral", False):
+        other_info_list[3] = naomi_oral_position_info()
+    else:
+        other_info_list[3] = "[naomi.fname] now obeys when you force her to service you with her mouth."
+
+    if not naomi.event_triggers_dict.get("naomi_allow_vaginal", False):
+        other_info_list[4] = naomi_vaginal_position_info()
+    else:
+        other_info_list[4] = "[naomi.fname] now accepts bent-over vaginal punishment when you catch her slacking off."
+
+    if not naomi.event_triggers_dict.get("naomi_allow_anal", False):
+        other_info_list[5] = naomi_anal_position_info()
+    else:
+        other_info_list[5] = "[naomi.fname] now accepts prone anal punishment when you catch her slacking off."
 
     return other_info_list
 
@@ -140,43 +155,38 @@ def naomi_foreplay_position_filter(foreplay_position: Position):
 def naomi_oral_position_filter(oral_position: Position):
     if not naomi.has_role(maid_role):
         return False
-    # naomi.event_triggers_dict.get("naomi_allow_oral", False)
-    return naomi.sex_record.get("Fingered", 0) > 3
+    return naomi.event_triggers_dict.get("naomi_allow_oral", False)
 
 def naomi_vaginal_position_filter(vaginal_position: Position):
     if not naomi.has_role(maid_role):
         return False
-    if naomi.corruption_level <= 2:
-        return False
-    # naomi.event_triggers_dict.get("naomi_allow_vaginal", False)
-    return naomi.cum_mouth_count > 3
+    return naomi.event_triggers_dict.get("naomi_allow_vaginal", False)
 
 def naomi_anal_position_filter(anal_position: Position):
     if not naomi.has_role(maid_role):
         return False
-    # return naomi.event_triggers_dict.get("naomi_allow_anal", False)
-    return naomi.vaginal_creampie_count > 3
+    return naomi.event_triggers_dict.get("naomi_allow_anal", False)
 
 def naomi_oral_position_info():
     if not naomi.has_role(maid_role):
         return "Wait until you can hire her as maid"
-    if naomi.corruption_level <= 2:
-        return "You will need to corrupt your maid further"
-    count = 4 - naomi.sex_record.get("Fingered", 0)
+    count = 2 - naomi.sex_record.get("Fingered", 0)
+    if count <= 0:
+        return "Catch her slacking off at work again"
     return f"Finger her {count} more times"
 
 def naomi_vaginal_position_info():
     if not naomi.has_role(maid_role):
         return "Wait until you can hire her as maid"
-    if naomi.corruption_level <= 2:
-        return "You will need to corrupt your maid further"
-    count = 4 - naomi.cum_mouth_count
-    return f"Cum in her mouth {count} more times"
+    count = 3 - naomi.blowjob_count
+    if count <= 0:
+        return "Catch her slacking off in your bedroom"
+    return f"Have her blow you {count} more times"
 
 def naomi_anal_position_info():
     if not naomi.has_role(maid_role):
         return "Wait until you can hire her as maid"
-    if naomi.corruption_level <= 2:
-        return "You will need to corrupt your maid further"
-    count = 4 - naomi.vaginal_creampie_count
+    count = 3 - naomi.vaginal_creampie_count
+    if count <= 0:
+        return "Catch her slacking off in your mother's bedroom"
     return f"Give her {count} more creampies"

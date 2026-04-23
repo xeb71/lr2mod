@@ -1,5 +1,5 @@
 init 1 python:
-    from game.major_game_classes.business_related.ToyDesign_ren import Printer
+    from game.major_game_classes.business_related.ToyDesign_ren import Printer, normalize_toy_lubricant_traits
 
     def buy_printer(name, speed, cost):
         mc.business.add_printer(Printer(name, speed_modifier=speed, cost=cost))
@@ -57,12 +57,22 @@ init 1 python:
         mc.business.active_attribute_research = attr
         mc.business.active_toy_research = None
 
-    def create_custom_toy_design(blueprint, battery, components, name):
+    def lubricant_trait_allowed(selected_traits, trait):
+        # Match the main serum designer's conflict rule: traits conflict when
+        # they share any exclude tag.
+        return not any(
+            tag in getattr(existing, 'exclude_tags', [])
+            for existing in selected_traits
+            for tag in getattr(trait, 'exclude_tags', [])
+        )
+
+    def create_custom_toy_design(blueprint, battery, components, name, lubricant_traits = None):
         """Create a custom ToyDesign from chosen blueprint, battery, components and name."""
         design = ToyDesign(blueprint)
         design.add_attribute(battery)
         for comp in components:
             design.add_attribute(comp)
+        design.set_lubricant_formula(lubricant_traits, mc.business.lubricant_duration)
         design.name = name.strip() if name else blueprint.name
         design.identifier = generate_identifier((design.name, "design"))
         if not hasattr(mc.business, 'toy_designs'):
@@ -70,9 +80,9 @@ init 1 python:
         mc.business.toy_designs.append(design)
         mc.business.add_normal_message("New custom design created: " + design.name)
 
-    def can_upgrade_design(design, sel_bp, sel_bat, sel_comps):
-        """Return True if the existing design can be upgraded to the selected blueprint/battery/components.
-        Requires: same blueprint, different battery and/or components, new design at least as valuable."""
+    def can_upgrade_design(design, sel_bp, sel_bat, sel_comps, sel_lubricant_traits = None):
+        """Return True if the existing design can be upgraded to the selected blueprint/battery/components/lubricant.
+        Requires: same blueprint, at least one different selection, new design at least as valuable."""
         if sel_bp is None or sel_bat is None:
             return False
         if design.blueprint is not sel_bp:
@@ -81,20 +91,26 @@ init 1 python:
         existing_bat = next((a for a in attrs if getattr(a, 'power_add', 0) > 0), None)
         existing_comps_ids = frozenset(id(a) for a in attrs if getattr(a, 'power_add', 0) <= 0)
         new_comps_ids = frozenset(id(c) for c in sel_comps)
+        existing_lube_ids = frozenset(id(s) for s in normalize_toy_lubricant_traits(getattr(design, 'lubricant_traits', [])))
+        new_lube_ids = frozenset(id(s) for s in normalize_toy_lubricant_traits(sel_lubricant_traits))
+        existing_lube_duration = getattr(design, 'lubricant_duration', mc.business.lubricant_duration)
+        new_lube_duration = mc.business.lubricant_duration
         same_bat = existing_bat is sel_bat
         same_comps = existing_comps_ids == new_comps_ids
-        if same_bat and same_comps:
+        same_lubes = existing_lube_ids == new_lube_ids and existing_lube_duration == new_lube_duration
+        if same_bat and same_comps and same_lubes:
             return False
         new_val = getattr(sel_bp, 'base_value', 0) + getattr(sel_bat, 'value_add', 0) + sum(getattr(c, 'value_add', 0) for c in sel_comps)
         return new_val >= design.base_value
 
-    def perform_toy_upgrade(design, sel_bat, sel_comps, cost):
-        """Upgrade an existing toy design's battery/components in-place and deduct cost."""
+    def perform_toy_upgrade(design, sel_bat, sel_comps, sel_lubricant_traits, cost):
+        """Upgrade an existing toy design's battery/components/lubricant in-place and deduct cost."""
         mc.business.change_funds(-cost, stat="Toy Upgrades")
         design.attributes = []
         design.add_attribute(sel_bat)
         for comp in sel_comps:
             design.add_attribute(comp)
+        design.set_lubricant_formula(sel_lubricant_traits, mc.business.lubricant_duration)
         mc.business.add_normal_message(f"Design '{design.name}' has been upgraded!")
 
 screen engineering_printers_ui():
@@ -132,134 +148,138 @@ screen engineering_printers_ui():
 
                         for printer in mc.business.printers:
                             frame:
-                                background "#1a1a2e88"
+                                background "#4a7fc1cc"
                                 xfill True
-                                xpadding 10
-                                ypadding 6
-                                vbox:
-                                    spacing 4
-                                    # Items-to-produce values computed once for use in both rows
-                                    $ _itp = getattr(printer, 'items_to_produce', 0)
-                                    $ _iproduced = getattr(printer, '_items_produced', 0)
-                                    $ _remaining = max(0, _itp - _iproduced)
+                                padding (2, 2)
+                                frame:
+                                    background "#1a1a2e88"
+                                    xfill True
+                                    xpadding 10
+                                    ypadding 6
+                                    vbox:
+                                        spacing 4
+                                        # Items-to-produce values computed once for use in both rows
+                                        $ _itp = getattr(printer, 'items_to_produce', 0)
+                                        $ _iproduced = getattr(printer, '_items_produced', 0)
+                                        $ _remaining = max(0, _itp - _iproduced)
 
-                                    # Row 1: printer name + current design status + total mfg cost
-                                    hbox:
-                                        spacing 20
-                                        text "[printer.name] (Speed: [printer.speed_modifier]x)" style "menu_text_style" yalign 0.5
+                                        # Row 1: printer name + current design status + total mfg cost
+                                        hbox:
+                                            spacing 20
+                                            text "[printer.name] (Speed: [printer.speed_modifier]x)" style "menu_text_style" yalign 0.5
 
-                                        if printer.selected_design:
-                                            $ _unit_cost = printer.selected_design.production_cost
-                                            $ _unit_cost_dollars = _unit_cost * 2
-                                            if _itp > 0:
-                                                $ _total_mfg_dollars = _unit_cost_dollars * _remaining
-                                                text "Producing: [printer.selected_design.name]  {size=13}{color=#ffcc66}Total Mfg Cost: $[_total_mfg_dollars] ([_remaining] × $[_unit_cost_dollars]){/color}{/size}" style "menu_text_style" yalign 0.5
+                                            if printer.selected_design:
+                                                $ _unit_cost = printer.selected_design.production_cost
+                                                $ _unit_cost_dollars = _unit_cost * 2
+                                                if _itp > 0:
+                                                    $ _total_mfg_dollars = _unit_cost_dollars * _remaining
+                                                    text "Producing: [printer.selected_design.name]  {size=13}{color=#ffcc66}Total Mfg Cost: $[_total_mfg_dollars] ([_remaining] × $[_unit_cost_dollars]){/color}{/size}" style "menu_text_style" yalign 0.5
+                                                else:
+                                                    text "Producing: [printer.selected_design.name]  {size=13}{color=#ffcc66}Mfg Cost: $[_unit_cost_dollars]/unit | Sell Value: $[printer.selected_design.base_value]{/color}{/size}" style "menu_text_style" yalign 0.5
                                             else:
-                                                text "Producing: [printer.selected_design.name]  {size=13}{color=#ffcc66}Mfg Cost: $[_unit_cost_dollars]/unit | Sell Value: $[printer.selected_design.base_value]{/color}{/size}" style "menu_text_style" yalign 0.5
-                                        else:
-                                            text "{color=#ff4444}Idle - no design assigned{/color}" style "menu_text_style" yalign 0.5
+                                                text "{color=#ff4444}Idle - no design assigned{/color}" style "menu_text_style" yalign 0.5
 
-                                        $ _sell_refund = int(printer.cost * 0.5)
-                                        frame:
-                                            background "#4a7fc1cc"
-                                            padding (2, 2)
-                                            yalign 0.5
-                                            textbutton "Sell (refund $[_sell_refund])":
-                                                style "textbutton_style"
-                                                action [Function(sell_printer, printer), SetScreenVariable("picking_design_for", None)]
-
-                                    # Row 2: Assign Design button + items-to-produce controls
-                                    hbox:
-                                        spacing 12
-                                        yalign 0.5
-                                        $ _ready_designs = [d for d in getattr(mc.business, 'toy_designs', []) if d.is_ready]
-
-                                        frame:
-                                            background "#4a7fc1cc"
-                                            padding (2, 2)
-                                            yalign 0.5
-                                            textbutton "Assign Design":
-                                                style "textbutton_style"
-                                                sensitive (len(_ready_designs) > 0)
-                                                action If(picking_design_for is printer,
-                                                    true=SetScreenVariable("picking_design_for", None),
-                                                    false=SetScreenVariable("picking_design_for", printer))
-
-                                        if printer.selected_design:
+                                            $ _sell_refund = int(printer.cost * 0.5)
                                             frame:
                                                 background "#4a7fc1cc"
                                                 padding (2, 2)
                                                 yalign 0.5
-                                                textbutton "Clear Design":
+                                                textbutton "Sell (refund $[_sell_refund])":
                                                     style "textbutton_style"
-                                                    action Function(assign_design_to_printer, printer, None)
+                                                    action [Function(sell_printer, printer), SetScreenVariable("picking_design_for", None)]
 
-                                        # Items-to-produce counter (shows remaining items, counts down to 0)
-                                        text "Produce:" style "menu_text_style" yalign 0.5
-                                        frame:
-                                            background "#4a7fc1cc"
-                                            padding (2, 2)
+                                        # Row 2: Assign Design button + items-to-produce controls
+                                        hbox:
+                                            spacing 12
                                             yalign 0.5
-                                            textbutton "<<":
-                                                style "textbutton_style"
-                                                sensitive (_remaining > 0)
-                                                action Function(set_printer_items_to_produce, printer, -10)
-                                        frame:
-                                            background "#4a7fc1cc"
-                                            padding (2, 2)
-                                            yalign 0.5
-                                            textbutton "<":
-                                                style "textbutton_style"
-                                                sensitive (_remaining > 0)
-                                                action Function(set_printer_items_to_produce, printer, -1)
-                                        text ("[_remaining]" if _itp > 0 else "∞") style "menu_text_style" yalign 0.5
-                                        frame:
-                                            background "#4a7fc1cc"
-                                            padding (2, 2)
-                                            yalign 0.5
-                                            textbutton ">":
-                                                style "textbutton_style"
-                                                action Function(set_printer_items_to_produce, printer, 1)
-                                        frame:
-                                            background "#4a7fc1cc"
-                                            padding (2, 2)
-                                            yalign 0.5
-                                            textbutton ">>":
-                                                style "textbutton_style"
-                                                action Function(set_printer_items_to_produce, printer, 10)
+                                            $ _ready_designs = [d for d in getattr(mc.business, 'toy_designs', []) if d.is_ready]
 
-                                        # Total cost display to the right of produce controls
-                                        if printer.selected_design:
-                                            $ _item_value = printer.selected_design.base_value
-                                            if _itp > 0:
-                                                $ _total_cost = _item_value * _remaining
-                                                $ _total_profit = _total_cost - (_unit_cost_dollars * _remaining)
-                                                text "{color=#ffcc66}Total value: $[_total_cost], Profit: $[_total_profit]{/color}" style "menu_text_style" yalign 0.5
-                                            else:
-                                                $ _profit_per_item = _item_value - _unit_cost_dollars
-                                                text "{color=#ffcc66}$[_item_value]/item, Profit: $[_profit_per_item]/item{/color}" style "menu_text_style" yalign 0.5
+                                            frame:
+                                                background "#4a7fc1cc"
+                                                padding (2, 2)
+                                                yalign 0.5
+                                                textbutton "Assign Design":
+                                                    style "textbutton_style"
+                                                    sensitive (len(_ready_designs) > 0)
+                                                    action If(picking_design_for is printer,
+                                                        true=SetScreenVariable("picking_design_for", None),
+                                                        false=SetScreenVariable("picking_design_for", printer))
 
-                                    # Design picker (shown only when this printer is selected)
-                                    if picking_design_for is printer:
-                                        frame:
-                                            background "#000030aa"
-                                            xfill True
-                                            xpadding 8
-                                            ypadding 6
-                                            vbox:
-                                                spacing 4
-                                                text "Select a design to assign:" style "menu_text_style" size 13
-                                                $ _ready_designs2 = [d for d in getattr(mc.business, 'toy_designs', []) if d.is_ready]
-                                                for design in _ready_designs2:
-                                                    frame:
-                                                        background "#4a7fc1cc"
-                                                        padding (2, 2)
-                                                        textbutton "[design.name] (Mfg Cost: [design.production_cost] pts | Sell Value: $[design.base_value])":
-                                                            style "textbutton_style"
-                                                            selected (printer.selected_design == design)
-                                                            action [Function(assign_design_to_printer, printer, design), SetScreenVariable("picking_design_for", None)]
-                                                if not _ready_designs2:
-                                                    text "No ready designs available. Complete a blueprint and create a design first." style "menu_text_style" size 13
+                                            if printer.selected_design:
+                                                frame:
+                                                    background "#4a7fc1cc"
+                                                    padding (2, 2)
+                                                    yalign 0.5
+                                                    textbutton "Clear Design":
+                                                        style "textbutton_style"
+                                                        action Function(assign_design_to_printer, printer, None)
+
+                                            # Items-to-produce counter (shows remaining items, counts down to 0)
+                                            text "Produce:" style "menu_text_style" yalign 0.5
+                                            frame:
+                                                background "#4a7fc1cc"
+                                                padding (2, 2)
+                                                yalign 0.5
+                                                textbutton "<<":
+                                                    style "textbutton_style"
+                                                    sensitive (_remaining > 0)
+                                                    action Function(set_printer_items_to_produce, printer, -10)
+                                            frame:
+                                                background "#4a7fc1cc"
+                                                padding (2, 2)
+                                                yalign 0.5
+                                                textbutton "<":
+                                                    style "textbutton_style"
+                                                    sensitive (_remaining > 0)
+                                                    action Function(set_printer_items_to_produce, printer, -1)
+                                            text ("[_remaining]" if _itp > 0 else "∞") style "menu_text_style" yalign 0.5
+                                            frame:
+                                                background "#4a7fc1cc"
+                                                padding (2, 2)
+                                                yalign 0.5
+                                                textbutton ">":
+                                                    style "textbutton_style"
+                                                    action Function(set_printer_items_to_produce, printer, 1)
+                                            frame:
+                                                background "#4a7fc1cc"
+                                                padding (2, 2)
+                                                yalign 0.5
+                                                textbutton ">>":
+                                                    style "textbutton_style"
+                                                    action Function(set_printer_items_to_produce, printer, 10)
+
+                                            # Total cost display to the right of produce controls
+                                            if printer.selected_design:
+                                                $ _item_value = printer.selected_design.base_value
+                                                if _itp > 0:
+                                                    $ _total_cost = _item_value * _remaining
+                                                    $ _total_profit = _total_cost - (_unit_cost_dollars * _remaining)
+                                                    text "{color=#ffcc66}Total value: $[_total_cost], Profit: $[_total_profit]{/color}" style "menu_text_style" yalign 0.5
+                                                else:
+                                                    $ _profit_per_item = _item_value - _unit_cost_dollars
+                                                    text "{color=#ffcc66}$[_item_value]/item, Profit: $[_profit_per_item]/item{/color}" style "menu_text_style" yalign 0.5
+
+                                        # Design picker (shown only when this printer is selected)
+                                        if picking_design_for is printer:
+                                            frame:
+                                                background "#000030aa"
+                                                xfill True
+                                                xpadding 8
+                                                ypadding 6
+                                                vbox:
+                                                    spacing 4
+                                                    text "Select a design to assign:" style "menu_text_style" size 13
+                                                    $ _ready_designs2 = [d for d in getattr(mc.business, 'toy_designs', []) if d.is_ready]
+                                                    for design in _ready_designs2:
+                                                        frame:
+                                                            background "#4a7fc1cc"
+                                                            padding (2, 2)
+                                                            textbutton "[design.name] (Mfg Cost: [design.production_cost] pts | Sell Value: $[design.base_value])":
+                                                                style "textbutton_style"
+                                                                selected (printer.selected_design == design)
+                                                                action [Function(assign_design_to_printer, printer, design), SetScreenVariable("picking_design_for", None)]
+                                                    if not _ready_designs2:
+                                                        text "No ready designs available. Complete a blueprint and create a design first." style "menu_text_style" size 13
 
                         null height 10
                         $ _printer_count = len(mc.business.printers)
@@ -344,14 +364,18 @@ screen engineering_blueprints_ui():
             xfill True
             xpadding 10
             ypadding 6
-            if mc.business.active_toy_research:
-                $ _cur = mc.business.active_toy_research
-                text "Current Research: {color=#ffd700}[_cur.name]{/color} ([int(_cur.research_percentage * 100)]%) — Blueprint" style "menu_text_style" xalign 0.5
-            elif getattr(mc.business, 'active_attribute_research', None):
-                $ _cur = mc.business.active_attribute_research
-                text "Current Research: {color=#ffd700}[_cur.name]{/color} ([int(_cur.research_percentage * 100)]%) — Component" style "menu_text_style" xalign 0.5
-            else:
-                text "Current Research: None" style "menu_text_style" xalign 0.5
+            vbox:
+                xfill True
+                spacing 4
+                if mc.business.active_toy_research:
+                    $ _cur = mc.business.active_toy_research
+                    text "Current Research: {color=#ffd700}[_cur.name]{/color} ([int(_cur.research_percentage * 100)]%) — Blueprint" style "menu_text_style" xalign 0.5
+                elif getattr(mc.business, 'active_attribute_research', None):
+                    $ _cur = mc.business.active_attribute_research
+                    text "Current Research: {color=#ffd700}[_cur.name]{/color} ([int(_cur.research_percentage * 100)]%) — Attribute" style "menu_text_style" xalign 0.5
+                else:
+                    text "Current Research: None" style "menu_text_style" xalign 0.5
+                text "Lubricant formula: {color=#ffd700}[mc.business.lubricant_trait_capacity]{/color} trait(s), {color=#ffd700}[mc.business.lubricant_duration]{/color} turn(s)" style "menu_text_style" xalign 0.5
 
         viewport:
             xfill True
@@ -508,7 +532,7 @@ screen engineering_blueprints_ui():
                         frame:
                             background "#000080"
                             xfill True
-                            text "Component Research" style "menu_text_style" xalign 0.5
+                            text "Attribute Research" style "menu_text_style" xalign 0.5
 
                         # Column headers
                         hbox:
@@ -584,7 +608,10 @@ screen engineering_blueprints_ui():
                                                         text "[attr.research_needed] pts ([int(attr.research_percentage * 100)]%)" style "menu_text_style" size 13
                                                     else:
                                                         text "[attr.research_needed] pts" style "menu_text_style" size 13
-                                                    text "Effect: +[attr.production_cost_add] cost, +$[attr.value_add] value" style "menu_text_style" size 11
+                                                    if getattr(attr, 'lubricant_trait_add', 0) > 0 or getattr(attr, 'lubricant_duration_add', 0) > 0:
+                                                        text "Effect: +[attr.lubricant_trait_add] lubricant trait slot, +[attr.lubricant_duration_add] turn" style "menu_text_style" size 11
+                                                    else:
+                                                        text "Effect: +[attr.production_cost_add] cost, +$[attr.value_add] value" style "menu_text_style" size 11
                                             # Power column
                                             frame:
                                                 xsize 100
@@ -770,10 +797,23 @@ screen engineering_design_new_toy_ui():
     default sel_bp = None
     default sel_bat = None
     default sel_comps = []
+    default sel_lubricant_traits = []
 
     $ _bps = [bp for bp in getattr(mc.business, 'toy_blueprints', []) if bp.researched]
-    $ _bats = [a for a in getattr(mc.business, 'toy_attributes', []) if a.researched and getattr(a, 'power_add', 0) > 0]
-    $ _comps = [a for a in getattr(mc.business, 'toy_attributes', []) if a.researched and getattr(a, 'power_add', 0) <= 0]
+    $ _bats = [a for a in getattr(mc.business, 'toy_attributes', []) if a.researched and getattr(a, 'design_component', True) and getattr(a, 'power_add', 0) > 0]
+    $ _comps = [a for a in getattr(mc.business, 'toy_attributes', []) if a.researched and getattr(a, 'design_component', True) and getattr(a, 'power_add', 0) <= 0]
+    $ _lube_traits = sorted(
+        [
+            t for t in list_of_traits + getattr(mc.business, 'blueprinted_traits', [])
+            if getattr(t, 'researched', False)
+            and not getattr(t, 'is_side_effect', False)
+            and "Production" not in getattr(t, 'exclude_tags', [])
+            and getattr(t, 'name', '') != "Antidote"
+        ],
+        key=lambda t: (-t.tier, t.name)
+    )
+    $ _lube_capacity = mc.business.lubricant_trait_capacity
+    $ _lube_duration = mc.business.lubricant_duration
 
     $ _INTERNET_COMP_NAME = "Internet Connection, with Bluetooth"
     $ _BLUETOOTH_COMP_NAME = "Bluetooth Module"
@@ -901,6 +941,8 @@ screen engineering_design_new_toy_ui():
                                     for comp in _comps:
                                         $ _in = comp in sel_comps
                                         $ _after = _remaining + (0 if _in else getattr(comp, 'power_add', 0))
+                                        $ _after_slots = _comp_slots + (0 if _in else getattr(comp, 'module_space_add', 0))
+                                        $ _after_slots_used = _comp_slots_used + (0 if _in else 1)
                                         $ _blocked_by_internet = _internet_selected and getattr(comp, 'name', '') == _BLUETOOTH_COMP_NAME
                                         hbox:
                                             xfill True
@@ -909,7 +951,7 @@ screen engineering_design_new_toy_ui():
                                             textbutton "[comp.name]  {size=12}([comp.power_add] pwr | +$[comp.value_add] | arousal: [comp.arousal_rating_add]){/size}":
                                                 style "textbutton_style"
                                                 xsize 600
-                                                sensitive (not _blocked_by_internet and (_in or (_after >= 0 and _comp_slots_used < _comp_slots)))
+                                                sensitive (not _blocked_by_internet and (_in or (_after >= 0 and _after_slots_used <= _after_slots)))
                                                 action If(comp in sel_comps,
                                                     true=SetScreenVariable("sel_comps", [c for c in sel_comps if c != comp]),
                                                     false=If(getattr(comp, 'name', '') == _INTERNET_COMP_NAME,
@@ -924,6 +966,46 @@ screen engineering_design_new_toy_ui():
                                 text "No components researched yet." style "menu_text_style"
                         else:
                             text "Select a blueprint and battery first." style "menu_text_style" size 14
+
+                # 4. Lubricant selection
+                frame:
+                    background "#0a142688"
+                    xfill True
+                    xpadding 10
+                    ypadding 10
+                    vbox:
+                        spacing 6
+                        frame:
+                            background "#000080"
+                            xfill True
+                            text "4. Choose Additional Lubricant Traits (optional)" style "menu_text_style" xalign 0.5
+                        if _lube_capacity <= 0:
+                            text "Antidote is included automatically and does not use space. Research Lubricant Infusion to add extra lubricant traits for toy designs." style "menu_text_style"
+                        elif _lube_traits:
+                            text "Mandatory: Antidote | Extra selected: [len(sel_lubricant_traits)]/[_lube_capacity] trait(s) | Duration: [_lube_duration] turn(s)" style "menu_text_style" xalign 0.5 size 14
+                            vbox:
+                                spacing 4
+                                for trait in _lube_traits:
+                                    $ _has_trait = trait in sel_lubricant_traits
+                                    $ _allowed = _has_trait or lubricant_trait_allowed(sel_lubricant_traits, trait)
+                                    hbox:
+                                        xfill True
+                                        spacing 8
+                                        yalign 0.5
+                                        textbutton "[trait.name]  {size=12}(Tier [trait.tier]){/size}":
+                                            style "textbutton_style"
+                                            xsize 600
+                                            sensitive (_has_trait or (_allowed and len(sel_lubricant_traits) < _lube_capacity))
+                                            action If(_has_trait,
+                                                true=SetScreenVariable("sel_lubricant_traits", [t for t in sel_lubricant_traits if t != trait]),
+                                                false=SetScreenVariable("sel_lubricant_traits", sel_lubricant_traits + [trait]))
+                                            selected _has_trait
+                                        if not _allowed:
+                                            text "{i}Conflicts with a selected trait{/i}" style "menu_text_style" size 12 yalign 0.5
+                                        else:
+                                            text "[trait.positive_slug if trait.positive_slug else trait.desc]" style "menu_text_style" size 12 yalign 0.5
+                        else:
+                            text "No researched serum traits available yet." style "menu_text_style"
 
                 # Completed Designs section
                 frame:
@@ -946,6 +1028,8 @@ screen engineering_design_new_toy_ui():
                                     vbox:
                                         spacing 2
                                         $ _d_attrs = getattr(design, 'attributes', [])
+                                        $ _d_lube_traits = getattr(design, 'lubricant_traits', [])
+                                        $ _d_lube_duration = getattr(design, 'lubricant_duration', 0)
                                         $ _d_arousal = design.total_arousal_rating
                                         $ _d_slut_req = _d_arousal * 5
                                         $ _d_is_plug = "plug" in getattr(design.blueprint, 'name', '').lower()
@@ -954,13 +1038,13 @@ screen engineering_design_new_toy_ui():
                                             spacing 10
                                             yalign 0.5
                                             text "[design.name]  {size=13}(Mfg Cost: [design.production_cost] pts | Sell Value: $[design.base_value] | Components: [len(_d_attrs)] | Arousal: [_d_arousal]){/size}" style "menu_text_style" yalign 0.5
-                                            $ _can_upg = can_upgrade_design(design, sel_bp, sel_bat, sel_comps)
+                                            $ _can_upg = can_upgrade_design(design, sel_bp, sel_bat, sel_comps, sel_lubricant_traits)
                                             textbutton ("{color=#66aaff}Upgrade{/color}" if _can_upg else "{color=#888888}Upgrade{/color}"):
                                                 style "textbutton_style"
                                                 text_size 13
                                                 sensitive _can_upg
-                                                action Call("toy_upgrade_confirm_label", design, sel_bat, sel_comps)
-                                                tooltip "Upgrade this design to the battery/components selected above"
+                                                action Call("toy_upgrade_confirm_label", design, sel_bat, sel_comps, sel_lubricant_traits)
+                                                tooltip "Upgrade this design to the battery, components, and lubricant traits selected above"
                                             textbutton "{color=#ff6666}Remove{/color}":
                                                 style "textbutton_style"
                                                 text_size 13
@@ -973,6 +1057,13 @@ screen engineering_design_new_toy_ui():
                                                 text "{size=12}{color=#aaaaaa}Components:{/color}{/size}" style "menu_text_style"
                                                 for _attr in _d_attrs:
                                                     text "{size=12}{color=#cccccc}[_attr.name]{/color}{/size}" style "menu_text_style"
+                                        if _d_lube_traits:
+                                            hbox:
+                                                spacing 4
+                                                xoffset 16
+                                                text "{size=12}{color=#aaaaaa}Lubricant ([_d_lube_duration] turn(s)):{/color}{/size}" style "menu_text_style"
+                                                for _trait in _d_lube_traits:
+                                                    text "{size=12}{color=#cccccc}[_trait.name]{/color}{/size}" style "menu_text_style"
                                         # Requirements row (generic — not tied to any specific person)
                                         hbox:
                                             spacing 12
@@ -991,7 +1082,7 @@ screen engineering_design_new_toy_ui():
                 textbutton "Create Design":
                     style "textbutton_style"
                     sensitive _can_confirm
-                    action Return((sel_bp, sel_bat, list(sel_comps)))
+                    action Return((sel_bp, sel_bat, list(sel_comps), list(sel_lubricant_traits)))
             frame:
                 background "#7f2020cc"
                 padding (4, 4)

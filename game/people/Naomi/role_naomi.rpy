@@ -445,3 +445,65 @@ label catch_naomi_masturbating_label(the_person):
 
     call advance_time() from _call_advance_time_catch_naomi_masturbating
     return
+
+label catch_naomi_blowjob_label(the_person):
+    $ the_person.draw_person(position = "stand2")
+    "You find [the_person.possessive_title] leaning against the kitchen counter instead of working."
+    mc.name "If you have time to slack off, you have time to make yourself useful."
+    the_person "I'm sorry, Sir... I just needed a moment."
+    mc.name "Then get on your knees and use that mouth for something productive."
+    $ the_person.draw_person(position = "blowjob")
+    "Naomi swallows hard, then obediently kneels before you."
+    $ the_person.break_taboo("sucking_cock")
+    $ the_person.add_situational_obedience("naomi_maid_punishment", 20, "Sir caught me slacking off again.")
+    call fuck_person(the_person, private = True, start_position = blowjob, start_object = make_floor(), skip_intro = True, girl_in_charge = False, self_strip = False, position_locked = True) from _call_fuck_person_naomi_blowjob_lesson_01
+    $ the_person.clear_situational_obedience("naomi_maid_punishment")
+    $ the_person.draw_person()
+    mc.name "Good. The next time I catch you wasting company time, expect a harsher lesson."
+    the_person "Yes, Sir."
+    $ the_person.apply_planned_outfit(show_dress_sequence = True)
+    "She straightens her uniform and hurries back to her chores."
+    $ the_person.event_triggers_dict["naomi_allow_oral"] = True
+    $ the_person.corruption_level += 1
+    call advance_time() from _call_advance_time_catch_naomi_blowjob
+    return
+
+label catch_naomi_vaginal_label(the_person):
+    "You step into your bedroom and find [the_person.possessive_title] lingering by the bed instead of cleaning."
+    $ the_person.draw_person(position = "stand2")
+    mc.name "You look far too comfortable for someone who is supposed to be working."
+    the_person "I was just finishing up, Sir."
+    mc.name "No. You are going to bend over the bed and let me remind you what slacking off costs."
+    $ the_person.break_taboo("vaginal_sex")
+    $ the_person.add_situational_obedience("naomi_maid_punishment", 25, "Sir is teaching me another lesson.")
+    call fuck_person(the_person, private = True, start_position = bent_over_breeding, start_object = make_bed(), skip_intro = True, girl_in_charge = False, self_strip = False, position_locked = True, skip_condom = True) from _call_fuck_person_naomi_vaginal_lesson_01
+    $ the_person.clear_situational_obedience("naomi_maid_punishment")
+    $ the_person.draw_person()
+    mc.name "Now you know what happens when my maid wastes time in my bedroom."
+    the_person "Yes, Sir... I understand."
+    $ the_person.apply_planned_outfit(show_dress_sequence = True)
+    "Naomi gets herself back together and resumes her work."
+    $ the_person.event_triggers_dict["naomi_allow_vaginal"] = True
+    $ the_person.corruption_level += 1
+    call advance_time() from _call_advance_time_catch_naomi_vaginal
+    return
+
+label catch_naomi_anal_label(the_person):
+    "You catch [the_person.possessive_title] dawdling in your mother's bedroom, barely pretending to work."
+    $ the_person.draw_person(position = "stand2")
+    mc.name "Still slacking off, [the_person.title]?"
+    the_person "No, Sir... I mean, I was just about to get back to it."
+    mc.name "Too late. Bend over the bed. This lesson is going to be your toughest one yet."
+    $ the_person.break_taboo("anal_sex")
+    $ the_person.add_situational_obedience("naomi_maid_punishment", 30, "Sir has decided I need a harsher punishment.")
+    call fuck_person(the_person, private = True, start_position = prone_anal, start_object = make_bed(), skip_intro = True, girl_in_charge = False, self_strip = False, position_locked = True, skip_condom = True) from _call_fuck_person_naomi_anal_lesson_01
+    $ the_person.clear_situational_obedience("naomi_maid_punishment")
+    $ the_person.draw_person()
+    mc.name "Remember this the next time you think about wasting my time."
+    the_person "I will, Sir."
+    $ the_person.apply_planned_outfit(show_dress_sequence = True)
+    "She pulls herself together and returns to her duties."
+    $ the_person.event_triggers_dict["naomi_allow_anal"] = True
+    $ the_person.corruption_level += 1
+    call advance_time() from _call_advance_time_catch_naomi_anal
+    return

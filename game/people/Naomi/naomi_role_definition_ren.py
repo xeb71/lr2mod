@@ -56,6 +56,9 @@ def hire_naomi_as_maid(person: Person):
     job.set_schedule(hall, day_slots = [0, 2, 4], time_slots = [2])
     job.set_schedule(lily_bedroom, day_slots = [1, 3], time_slots = [2])
     job.set_schedule(bedroom, day_slots = [0, 1, 2, 3], time_slots = [3])
+    add_catch_naomi_blowjob_action()
+    add_catch_naomi_vaginal_action()
+    add_catch_naomi_anal_action()
 
 def catch_naomi_slacking_off_requirement(person: Person, target_day: int):
     return day > target_day and naomi.is_at_work and person.is_at(kitchen) and person.location.person_count == 1
@@ -71,4 +74,46 @@ def catch_naomi_masturbating_requirement(person: Person, target_day: int):
 def add_catch_naomi_masturbating_action():
     naomi.add_unique_on_room_enter_event(
         Action("Naomi Masturbating", catch_naomi_masturbating_requirement, "catch_naomi_masturbating_label", requirement_args = day + renpy.random.randint(6, 8), priority = 30)
+    )
+
+def catch_naomi_blowjob_requirement(person: Person):
+    return (
+        not naomi.event_triggers_dict.get("naomi_allow_oral", False)
+        and naomi.sex_record.get("Fingered", 0) >= 2
+        and naomi.is_at_work
+        and person.is_at(kitchen)
+        and person.location.person_count == 1
+    )
+
+def add_catch_naomi_blowjob_action():
+    naomi.add_unique_on_room_enter_event(
+        Action("Naomi Blowjob Lesson", catch_naomi_blowjob_requirement, "catch_naomi_blowjob_label", priority = 30)
+    )
+
+def catch_naomi_vaginal_requirement(person: Person):
+    return (
+        not naomi.event_triggers_dict.get("naomi_allow_vaginal", False)
+        and naomi.blowjob_count >= 3
+        and naomi.is_at_work
+        and person.is_at(bedroom)
+        and person.location.person_count == 1
+    )
+
+def add_catch_naomi_vaginal_action():
+    naomi.add_unique_on_room_enter_event(
+        Action("Naomi Doggy Lesson", catch_naomi_vaginal_requirement, "catch_naomi_vaginal_label", priority = 30)
+    )
+
+def catch_naomi_anal_requirement(person: Person):
+    return (
+        not naomi.event_triggers_dict.get("naomi_allow_anal", False)
+        and naomi.vaginal_creampie_count >= 3
+        and naomi.is_at_work
+        and person.is_at(mom_bedroom)
+        and person.location.person_count == 1
+    )
+
+def add_catch_naomi_anal_action():
+    naomi.add_unique_on_room_enter_event(
+        Action("Naomi Anal Lesson", catch_naomi_anal_requirement, "catch_naomi_anal_label", priority = 30)
     )

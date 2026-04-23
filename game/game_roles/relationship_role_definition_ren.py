@@ -27,7 +27,7 @@ from game.map.map_code_ren import mall_is_open, sex_shop_is_open
 from game.game_roles._role_definitions_ren import sister_role, mother_role, dikdok_role
 from game.major_game_classes.game_logic.Action_ren import Action, Limited_Time_Action
 from game.major_game_classes.game_logic.Role_ren import Role
-from game.major_game_classes.game_logic.Room_ren import harem_mansion
+from game.major_game_classes.game_logic.Room_ren import harem_mansion, sex_store
 from game.major_game_classes.character_related.Person_ren import Person, mc, kaya, sakari
 from game.major_game_classes.clothing_related.Clothing_ren import Clothing
 
@@ -121,6 +121,8 @@ def girlfriend_toy_store_requirement(person: Person):
         return "Requires: higher sluttiness"
     if not sex_shop_is_open():
         return "Sex shop closed"
+    if not mc.is_at(sex_store):
+        return False
     if person.is_at_work:
         return "Ask her when she's not working"
     toy_inv = getattr(mc.business, 'toy_inventory', {})

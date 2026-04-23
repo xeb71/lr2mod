@@ -102,19 +102,22 @@ def has_scheduled_date_in_crisis_list() -> tuple[bool, Appointment]:
 
 def update_advance_time_action_list():
     global advance_time_action_list
-    for adv_time_action in advance_time_action_list:
-        if found := find_in_set(adv_time_action, ActionMod._instances):
-            try:
-                idx = action_mod_list.index(found)
-                found.enabled = action_mod_list[idx].enabled
+    current_actions = get_current_advance_time_actions()
+    enabled_by_effect = {
+        getattr(action, "effect", None): getattr(action, "enabled", True)
+        for action in action_mod_list
+    }
 
-                # replace the one in the action_mod_list with the current action implementation from the instance list
-                action_mod_list[idx] = found
-            except ValueError:
-                pass
+    for adv_time_action in current_actions:
+        adv_time_action.enabled = enabled_by_effect.get(adv_time_action.effect, adv_time_action.enabled)
 
-    # update the advance_time_action_list with the instances in the action_mod_list
-    advance_time_action_list = [x for x in action_mod_list if x in advance_time_action_list]
+        try:
+            idx = next(i for i, action in enumerate(action_mod_list) if getattr(action, "effect", None) == adv_time_action.effect)
+            action_mod_list[idx] = adv_time_action
+        except StopIteration:
+            action_mod_list.append(adv_time_action)
+
+    advance_time_action_list = list(current_actions)
     # sort list on execution priority
     advance_time_action_list.sort(key = lambda x: x.priority)
 
@@ -154,6 +157,21 @@ advance_time_random_morning_crisis_action = ActionMod("Run random morning crisis
 advance_time_action_list = [advance_time_people_run_turn_action, advance_time_people_run_day_action, advance_time_end_of_day_action, advance_time_next_action, advance_time_mandatory_crisis_action,
     advance_time_random_crisis_action, advance_time_mandatory_morning_crisis_action, advance_time_random_morning_crisis_action,
     advance_time_people_run_move_action, advance_time_bankrupt_check_action, advance_time_update_progression_scenes_action]
+
+def get_current_advance_time_actions() -> list[ActionMod]:
+    return [
+        advance_time_people_run_turn_action,
+        advance_time_people_run_day_action,
+        advance_time_end_of_day_action,
+        advance_time_next_action,
+        advance_time_mandatory_crisis_action,
+        advance_time_random_crisis_action,
+        advance_time_mandatory_morning_crisis_action,
+        advance_time_random_morning_crisis_action,
+        advance_time_people_run_move_action,
+        advance_time_bankrupt_check_action,
+        advance_time_update_progression_scenes_action,
+    ]
 
 # sort list on execution priority
 advance_time_action_list.sort(key = lambda x: x.priority)

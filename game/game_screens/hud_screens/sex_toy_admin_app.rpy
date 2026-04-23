@@ -60,32 +60,38 @@ screen sex_toy_admin_app():
                                         $ _adm_tmax = getattr(_toy, 'max_intensity', 3)
                                         $ _adm_slut = _npc.sluttiness
                                         $ _adm_warn = _adm_ti * 10 > _adm_slut
+                                        $ _adm_can_decrease = _adm_ti > 1
+                                        $ _adm_can_increase = _adm_ti < _adm_tmax
+                                        $ _adm_decrease_bg = "#2a3a5a" if _adm_can_decrease else "#1a2235"
+                                        $ _adm_increase_bg = "#2a3a5a" if _adm_can_increase else "#1a2235"
+                                        $ _adm_decrease_action = [SetField(_toy, 'intensity', _adm_ti - 1), renpy.restart_interaction] if _adm_can_decrease else NullAction()
+                                        $ _adm_increase_action = [SetField(_toy, 'intensity', _adm_ti + 1), renpy.restart_interaction] if _adm_can_increase else NullAction()
                                         hbox:
                                             spacing 6
                                             if _adm_warn:
                                                 text f"  Intensity: {{color=#ff6666}}{_adm_ti}{{/color}}/{_adm_tmax}" style "menu_text_style" size 14 yalign 0.5
                                             else:
                                                 text f"  Intensity: {_adm_ti}/{_adm_tmax}" style "menu_text_style" size 14 yalign 0.5
-                                            if _adm_ti > 1:
-                                                frame:
-                                                    background "#2a3a5a"
-                                                    padding (2, 1)
+                                            frame:
+                                                background _adm_decrease_bg
+                                                padding (2, 1)
+                                                yalign 0.5
+                                                textbutton "-":
+                                                    style "textbutton_style"
+                                                    text_size 13
                                                     yalign 0.5
-                                                    textbutton "-":
-                                                        style "textbutton_style"
-                                                        text_size 13
-                                                        yalign 0.5
-                                                        action [SetField(_toy, 'intensity', _adm_ti - 1), renpy.restart_interaction]
-                                            if _adm_ti < _adm_tmax:
-                                                frame:
-                                                    background "#2a3a5a"
-                                                    padding (2, 1)
+                                                    sensitive _adm_can_decrease
+                                                    action _adm_decrease_action
+                                            frame:
+                                                background _adm_increase_bg
+                                                padding (2, 1)
+                                                yalign 0.5
+                                                textbutton "+":
+                                                    style "textbutton_style"
+                                                    text_size 13
                                                     yalign 0.5
-                                                    textbutton "+":
-                                                        style "textbutton_style"
-                                                        text_size 13
-                                                        yalign 0.5
-                                                        action [SetField(_toy, 'intensity', _adm_ti + 1), renpy.restart_interaction]
+                                                    sensitive _adm_can_increase
+                                                    action _adm_increase_action
             null height 5
             frame:
                 background "#2a3a5a"

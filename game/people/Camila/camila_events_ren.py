@@ -58,14 +58,36 @@ def add_camila_formal_date_action():
     camila.event_triggers_dict["help_with_lingerie"] = True
     camila.story_event_log("love")
 
-def camila_gives_anal_virginity_requirement(person: Person):
-    return False
+def camila_gives_anal_virginity_requirement():
+    return (
+        time_of_day == 4  # late night
+        and camila.love >= 80
+        and camila.story_event_ready("love")
+        and not camila.event_triggers_dict.get("lost_anal_virginity", False)
+        and camila.event_triggers_dict.get("formal_date", False)
+    )
 
 def add_camila_gives_anal_virginity_action():
-    camila.add_unique_on_room_enter_event(
-        Action("Camila Tries Anal", camila_gives_anal_virginity_requirement, "camila_gives_anal_virginity_label", priority = 30)
+    mc.business.add_mandatory_crisis(
+        Action("Camila Wants Something Just For Herself", camila_gives_anal_virginity_requirement, "camila_gives_anal_virginity_label", priority = 30)
     )
     camila.event_triggers_dict["formal_date"] = True
+    camila.story_event_log("love")
+
+def camila_decision_time_requirement():
+    return (
+        time_of_day == 3  # evening
+        and camila.love >= 90
+        and camila.story_event_ready("love")
+        and camila.event_triggers_dict.get("lost_anal_virginity", False)
+        and camila.event_triggers_dict.get("love_path", None) is None
+    )
+
+def add_camila_decision_time_action():
+    mc.business.add_mandatory_crisis(
+        Action("Camila Needs An Answer", camila_decision_time_requirement, "camila_decision_time_label", priority = 30)
+    )
+    camila.story_event_log("love")
 
 
 ##### Lust Events #####
@@ -123,6 +145,22 @@ def add_camila_her_place_action():
     )
     camila.learn_home()
 
+def camila_preferred_bull_requirement(person: Person):
+    return (
+        person.sluttiness > 90
+        and person.story_event_ready("slut")
+        and person.is_at(downtown_bar)
+        and person.event_triggers_dict.get("home_sex", False)
+        and not person.event_triggers_dict.get("preferred_bull", False)
+        and person.event_triggers_dict.get("love_path", None) != "leave_husband"
+    )
+
+def add_camila_preferred_bull_action():
+    camila.add_unique_on_room_enter_event(
+        Action("Camila Picks A Favourite", camila_preferred_bull_requirement, "camila_preferred_bull_label", priority = 30)
+    )
+    camila.story_event_log("slut")
+
 
 ##### Obedience Events #####
 
@@ -145,7 +183,7 @@ def add_camila_obedience_sexual_goals_intro_action():
     camila.add_unique_on_room_enter_event(
         Action("Exploring Sexual Goals", camila_obedience_sexual_goals_intro_requirement, "camila_obedience_sexual_goals_intro_label", priority = 30)
     )
-    camila.event_triggers_dict["goal_coach"] = True
+    camila.event_triggers_dict["personal_goal_coach"] = True
 
 def camila_obedience_tit_fuck_requirement(person: Person):
     return person.obedience > 160 and person.story_event_ready("obedience") and person.is_at(mall) and person.is_at_work

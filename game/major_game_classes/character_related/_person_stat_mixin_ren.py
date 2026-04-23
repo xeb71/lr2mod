@@ -534,11 +534,28 @@ class PersonStatMixin:
         if add_to_log and message:
             mc.log_notification(f"{self.display_name}: {' '.join(message)}", "float_text_yellow")
 
+    @property
+    def minimum_arousal_floor(self) -> int:
+        minimum_arousal = 30 if getattr(self, "wetness", 0) > 0 else 0
+        location = getattr(self, "location", None)
+        # The smell of sex in the room keeps everyone there at least a little aroused.
+        if location is not None and any(
+                person is not self and getattr(person, "wetness", 0) > 0
+                for person in location.people):
+            minimum_arousal = 30
+        return minimum_arousal
+
+    def enforce_minimum_arousal_floor(self):
+        minimum_arousal = self.minimum_arousal_floor
+        if self.arousal < minimum_arousal:
+            self.arousal = minimum_arousal
+
     def change_arousal(self, amount: int, add_to_log = True, toy_amount: int = 0) -> int:
         amount = builtins.int(builtins.round(amount))
         toy_amount = builtins.int(builtins.round(toy_amount))
-        if self.arousal + amount < 0:
-            amount = 0 - self.arousal
+        minimum_arousal = self.minimum_arousal_floor
+        if self.arousal + amount < minimum_arousal:
+            amount = minimum_arousal - self.arousal
 
         self.arousal += amount
         if add_to_log and amount != 0:
@@ -557,6 +574,7 @@ class PersonStatMixin:
             base_arousal = 0
 
         self.arousal = builtins.int(base_arousal)
+        self.enforce_minimum_arousal_floor()
 
     def change_max_arousal(self, amount: int, add_to_log = True) -> int:
         amount = builtins.int(builtins.round(amount))
@@ -611,4 +629,3 @@ class PersonStatMixin:
             percentage = amount * 1.0 / max(self.max_energy, 1)
             mc.log_event(f"{self.display_name}: {percentage:+.0%} Max Energy", "float_text_energy")
         return amount
-

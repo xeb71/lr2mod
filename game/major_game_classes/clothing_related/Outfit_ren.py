@@ -156,6 +156,7 @@ class Outfit:  # A bunch of clothing added together, without slot conflicts.
 
     def generate_draw_list(self, person: Person, position: str, emotion = "default", special_modifiers = None, lighting = None, hide_layers = None): #Generates a sorted list of displayables that when drawn display the outfit correctly.
         nipple_wetness = 0.0 # Used to simulate a girl lactating through clothing. Ranges from 0 (none) to 1 (Maximum Effect)
+        inherited_wetness = 0
         if not isinstance(person, Person):
             body_type = "standard_body"
             tit_size = "D"
@@ -165,6 +166,7 @@ class Outfit:  # A bunch of clothing added together, without slot conflicts.
             body_type = person.body_type
             tit_size = person.tits
             face_style = person.face_style
+            inherited_wetness = getattr(person, "wetness", 0)
             if person.lactation_sources > 0:
                 nipple_wetness = (0.1 * (float(Person.rank_tits(person.tits) + person.lactation_sources))) * (person.arousal_perc / 100)
                 if nipple_wetness > 1.0:
@@ -183,7 +185,7 @@ class Outfit:  # A bunch of clothing added together, without slot conflicts.
                     ordered_displayables.append(item.generate_item_displayable(position, face_style, emotion, special_modifiers, lighting = lighting))
             elif not item.is_extension:
                 if item.layer not in hide_layers:
-                    ordered_displayables.append(item.generate_item_displayable(body_type, tit_size, position, lighting = lighting, regions_constrained = currently_constrained_regions, nipple_wetness = nipple_wetness))
+                    ordered_displayables.append(item.generate_item_displayable(body_type, tit_size, position, lighting = lighting, regions_constrained = currently_constrained_regions, nipple_wetness = nipple_wetness, wetness_override = inherited_wetness))
                     for region in item.constrain_regions:
                         if item.half_off and region in item.half_off_regions:
                             pass # If an item is half off the regions that are hidden while half off are also not constrained by the clothing.

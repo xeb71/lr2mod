@@ -3,6 +3,13 @@ init 2 python:
     def mc_start_follow_requirement(person):
         return not person.follow_mc and person.love > 20 and person.obedience >= 120
 
+    def mc_start_follow_now_requirement(person):
+        if person.follow_mc_everywhere:
+            return False
+        if person.obedience <= 150:
+            return "Requires: 151 Obedience"
+        return True
+
     def mc_stop_follow_requirement(person):
         return person.follow_mc
 
@@ -92,7 +99,8 @@ init 2 python:
         return "Asked for a favour too recently"
 
 init 5 python:
-    mc_start_follow_action = ActionMod("Follow me", mc_start_follow_requirement, "mc_start_follow_label", menu_tooltip = "Ask a girl to follow you around town.", category = "Generic People Actions")
+    mc_start_follow_action = ActionMod("Follow me", mc_start_follow_requirement, "mc_start_follow_label", menu_tooltip = "Ask a girl to follow you around this area.", category = "Generic People Actions")
+    mc_start_follow_now_action = ActionMod("Follow me now", mc_start_follow_now_requirement, "mc_start_follow_now_label", menu_tooltip = "Order a girl to follow you everywhere you go.", category = "Generic People Actions")
     mc_stop_follow_action = ActionMod("Stop following me", mc_stop_follow_requirement, "mc_stop_follow_label", menu_tooltip = "Ask the girl stop following you.", allow_disable = False, category = "Generic People Actions")
 
     # Spend the Night | Allows you to sleep in the home of a person you have increased the love stat.
@@ -103,8 +111,10 @@ init 5 python:
     mc_remove_person_action = ActionMod("Remove from game", mc_remove_person_requirement, "mc_remove_person_label", menu_tooltip = "You are not interested in a girl. This will remove her from the game.", category = "Generic People Actions", initialization = init_action_mod_disabled)
 
     main_character_actions_list = [mc_start_follow_action, mc_stop_follow_action, mc_spend_the_night_action, mc_lasik_surgery_action, mc_remove_person_action]
+    if "command_actions" in globals() and mc_start_follow_now_action not in command_actions:
+        command_actions.append(mc_start_follow_now_action)
 
-    do_a_favour_action = ActionMod("Ask for a Favour   {energy=-15}", do_a_favour_requirement, "do_a_favour_label", category = "Generic People Actions", initialization = init_action_mod_disabled,
+    do_a_favour_action = ActionMod("Ask for a Favour   {energy=-15}", do_a_favour_requirement, "do_a_favour_label", category = "Generic People Actions",
         menu_tooltip = do_a_favour_tooltip)
     chat_actions.append(do_a_favour_action)
 
@@ -117,10 +127,19 @@ label mc_spend_the_night_label(person): # Consider adding the sleep_action to th
 
 # Follower Labels
 label mc_start_follow_label(person):
-    "You tell [person.title] to follow you around."
+    "You tell [person.title] to follow you around here."
 
+    $ the_person.follow_mc_everywhere = False
     $ the_person.follow_mc = True
     person "Ok, let's go."
+    jump game_loop      # exit talk menu
+
+label mc_start_follow_now_label(person):
+    "You tell [person.title] to stay with you wherever you go."
+
+    $ the_person.follow_mc = True
+    $ the_person.follow_mc_everywhere = True
+    person "Of course [the_person.mc_title], I'll stay right with you."
     jump game_loop      # exit talk menu
 
 label mc_stop_follow_label(person):
@@ -132,7 +151,10 @@ label mc_stop_follow_label(person):
         else:
             schedule_destination = "somewhere else"
 
-    "You tell [person.title] to stop following you around."
+    if the_person.follow_mc_everywhere:
+        "You tell [person.title] to stop following you everywhere."
+    else:
+        "You tell [person.title] to stop following you around here."
 
     $ the_person.follow_mc = False
 
@@ -776,6 +798,8 @@ label mc_move_to_private_location(the_person):
 
 label mc_change_to_private_location(the_person):
     $ old_mc_location = mc.location
+    $ old_harem_servant = None
+    $ old_harem_servant_location = None
 
     # TODO: Add more appropriate private locations for hubs when needed
     if the_person.is_at_mc_house:
@@ -866,9 +890,17 @@ label mc_change_to_private_location(the_person):
     else:
         "You take [the_person.possessive_title] to a more private spot."
         $ old_mc_location = None
+
+    $ servant = the_person.harem_servant if the_person.is_queen else None
+    if servant and servant != the_person and not servant.is_at(mc.location):
+        $ old_harem_servant = servant
+        $ old_harem_servant_location = servant.location
+        $ servant.change_location(mc.location)
     return
 
 label mc_restore_original_location(the_person):
+    $ servant_to_restore = globals().get("old_harem_servant", None)
+    $ servant_restore_location = globals().get("old_harem_servant_location", None)
     if "old_mc_location" in globals() and isinstance(old_mc_location, Room):
         if not old_mc_location.is_private:
             # we are moving to a non private location, she needs to get dressed properly
@@ -880,12 +912,21 @@ label mc_restore_original_location(the_person):
         else:
             "Afterwards you and [the_person.possessive_title] go back to [old_mc_location.formal_name]."
 
+        if (isinstance(servant_restore_location, Room)
+                and servant_to_restore
+                and servant_to_restore.location != servant_restore_location):
+            $ servant_to_restore.change_location(servant_restore_location)
+
         $ mc.change_location(old_mc_location)
         $ old_mc_location = None
+        $ old_harem_servant = None
+        $ old_harem_servant_location = None
         return True
     elif not the_person.location.is_private:
         if (not the_person.outfit.matches(the_person.current_planned_outfit) or
                 the_person.outfit.has_half_off_clothing):
             $ the_person.call_dialogue("clothing_review")
     $ old_mc_location = None
+    $ old_harem_servant = None
+    $ old_harem_servant_location = None
     return False

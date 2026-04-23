@@ -232,8 +232,8 @@ label get_fucked(the_person, the_goal = None, sex_path = None, private= True, st
                 "Finish":
                     mc.name "Let's be done for now."
                     the_person "Okay."
-        #Second condition, she isn't obedient but at least likes MC a little bit. She offers to continue
-        elif sex_can_continue(the_person, the_node = current_node) and the_person.love > 20 and mc.arousal_perc > 50:
+        #Second condition, she isn't obedient but at least likes MC a little bit, or is thrilled to keep submitting. She offers to continue
+        elif sex_can_continue(the_person, the_node = current_node) and (the_person.love > 20 or GIC_must_want_to_continue(the_person)) and mc.arousal_perc > 50:
             "As she finishes up, [the_person.title] gives your erection a couple strokes."
             the_person "Wow, you are still rock hard. Do you want me to keep going?"
             menu:

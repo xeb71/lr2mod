@@ -45,10 +45,13 @@ label advance_time(no_events = False, jump_to_game_loop = True):
     while count < advance_time_max_actions:
         if not no_events or (not advance_time_action_list[count] in advance_time_event_action_list):
             if advance_time_action_list[count].is_action_enabled(): # Only run actions that have their requirement met.
-                $ start_time = time.time()
-                # $ renpy.say(None, "Run: " + advance_time_action_list[count].name)
-                call expression advance_time_action_list[count].effect pass (*advance_time_action_list[count].args) from _call_advance_time_action_advance_time
-                $ add_to_debug_log(f"Adv time: {advance_time_action_list[count].name} ({{total_time:.3f}})", start_time)
+                if renpy.has_label(advance_time_action_list[count].effect):
+                    $ start_time = time.time()
+                    # $ renpy.say(None, "Run: " + advance_time_action_list[count].name)
+                    call expression advance_time_action_list[count].effect pass (*advance_time_action_list[count].args) from _call_advance_time_action_advance_time
+                    $ add_to_debug_log(f"Adv time: {advance_time_action_list[count].name} ({{total_time:.3f}})", start_time)
+                else:
+                    $ add_to_debug_log(f"Skipped missing advance-time label: {advance_time_action_list[count].effect}")
 
                 $ clear_scene()
                 if jumped_day:  # an event jumped to the next day, break current loop

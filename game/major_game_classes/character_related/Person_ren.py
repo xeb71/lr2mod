@@ -46,6 +46,7 @@ from game.major_game_classes.clothing_related.Expression_ren import Expression
 from game.major_game_classes.clothing_related.zip_manager_ren import emotion_images_dict
 from game.major_game_classes.business_related.Infraction_ren import Infraction
 from game.major_game_classes.serum_related.SerumDesign_ren import SerumDesign
+from game.major_game_classes.serum_related.SerumTrait_ren import SerumTrait
 from game.major_game_classes.serum_related.serums._serum_traits_T1_ren import antidote_trait
 from game.major_game_classes.serum_related.serums.fetish_serums_ren import start_anal_fetish_quest, start_cum_fetish_quest, start_breeding_fetish_quest
 from game.major_game_classes.game_logic.Action_ren import Action, Limited_Time_Action
@@ -79,6 +80,7 @@ from game.helper_functions.game_speed_constants_ren import TIER_0_TIME_DELAY, TI
 from game.major_game_classes.character_related._person_stat_mixin_ren import PersonStatMixin
 
 GAME_SPEED = 1
+TOY_SWITCH_OFF_CHANCE_MULTIPLIER = 2
 
 global report_log
 report_log: dict[str, int]
@@ -823,6 +825,7 @@ class Person(PersonStatMixin): #Everything that needs to be known about a person
         self.what_color = dialogue_color
 
         self.event_triggers_dict = {} #A dict used to store extra parameters used by events, like how many days has it been since a performance review.
+        self.wetness = 0
 
         self.identifier: int = generate_identifier((name, last_name, age))
         self.available = True
@@ -1572,6 +1575,16 @@ class Person(PersonStatMixin): #Everything that needs to be known about a person
     def follow_mc(self, value):
         self._follow_mc_outfit = None
         self._follow_mc = value
+        if not value:
+            self.follow_mc_everywhere = False
+
+    @property
+    def follow_mc_everywhere(self) -> bool:
+        return self.event_triggers_dict.get("follow_mc_everywhere", False)
+
+    @follow_mc_everywhere.setter
+    def follow_mc_everywhere(self, value):
+        self.event_triggers_dict["follow_mc_everywhere"] = value
 
     @property
     def body_images(self) -> Clothing:
@@ -2196,12 +2209,11 @@ class Person(PersonStatMixin): #Everything that needs to be known about a person
     def run_turn(self):
         self.change_energy(20, add_to_log = False)
 
-        # Decay clothing wetness by 1 each turn (wet clothes dry over time)
-        if self.outfit is not None:
-            for item in self.outfit.upper_body + self.outfit.lower_body:
-                w = getattr(item, 'wetness', 0)
-                if w > 0:
-                    item.wetness = w - 1
+        # Decay girl wetness by 1 each turn; worn clothes inherit this wetness while drawn.
+        current_wetness = getattr(self, "wetness", 0)
+        if current_wetness > 0:
+            self.wetness = current_wetness - 1
+        self.enforce_minimum_arousal_floor()
 
         if self.is_at_work:
             self.current_job.shifts += 1    # track worked shifts
@@ -2244,6 +2256,7 @@ class Person(PersonStatMixin): #Everything that needs to be known about a person
         if _installed:
             _max_intensity = max(getattr(t, 'intensity', 1) for t in _installed)
             _orgasm_chance = 20 + _max_intensity * 5  # intensity 1 = 25%, 2 = 30%, 3 = 35%, …
+            _switch_off_chance_multiplier = globals().get("TOY_SWITCH_OFF_CHANCE_MULTIPLIER", 2)
             if renpy.random.randint(0, 99) < _orgasm_chance:
                 self.toy_use_count = getattr(self, 'toy_use_count', 0) + 1
                 self.toy_orgasm_count = getattr(self, 'toy_orgasm_count', 0) + 1
@@ -2261,7 +2274,7 @@ class Person(PersonStatMixin): #Everything that needs to be known about a person
             for _t in list(_installed):
                 _ti = getattr(_t, 'intensity', 1)
                 if _ti * 10 > _slut:
-                    _uninstall_chance = _ti * 10 - _slut  # percentage chance
+                    _uninstall_chance = min(99, (_ti * 10 - _slut) * _switch_off_chance_multiplier)  # percentage chance
                     if renpy.random.randint(0, 99) < _uninstall_chance:
                         _t.uninstall()
                         _t.switched_off_until = day + 2
@@ -2355,28 +2368,30 @@ class Person(PersonStatMixin): #Everything that needs to be known about a person
             self.change_happiness(5 + 5 * self.opinion.masturbating, add_to_log = False)
             self.run_orgasm(show_dialogue = False, trance_chance_modifier = self.opinion.masturbating, add_to_log = False, fire_event = False)
 
-        if getattr(self, 'toy_inventory', []): # she has at least one sex toy; 50% chance she uses it
+        if getattr(self, 'toy_inventory', []):
             # Re-install toys whose switched-off cooldown has expired
             for _t in getattr(self, 'toy_inventory', []):
                 if not getattr(_t, 'installed', False) and getattr(_t, 'switched_off_until', 0) > 0 and not getattr(_t, 'is_switched_off', False):
                     _t.install()
                     _t.switched_off_until = 0
-            if renpy.random.randint(0, 99) < 50:
+
+            _daily_toys = self.get_daily_usable_toys()
+            if _daily_toys and renpy.random.randint(0, 99) < 50:
+                _used_toy = renpy.random.choice(_daily_toys)
                 self.toy_use_count = getattr(self, 'toy_use_count', 0) + 1
                 self.change_happiness(5, add_to_log = False)
                 if renpy.random.randint(0, 99) < 25: # 25% chance of orgasm
                     self.toy_orgasm_count = getattr(self, 'toy_orgasm_count', 0) + 1
                     self.change_slut(1, add_to_log = False)
                     self.change_happiness(10, add_to_log = False)
+                    self.apply_toy_lubricant_effect(_used_toy, add_to_log = False)
                     # Check for trance during toy-induced orgasm (based on suggestibility)
                     if renpy.random.randint(0, 100) < getattr(self, 'suggestibility', 0):
                         self.toy_trance_count = getattr(self, 'toy_trance_count', 0) + 1
                         # A trance from toy use increases like_vaginal or like_anal
                         # (capped at +5; less impactful than real-sex trances which go to +10).
-                        _toy_inv = getattr(self, 'toy_inventory', [])
-                        _active = [t for t in _toy_inv if getattr(t, 'installed', False)] or _toy_inv
-                        if _active and self.event_triggers_dict.get("last_day_sex_pref_increased", -1) != day:
-                            _used_type = getattr(renpy.random.choice(_active), 'toy_type', 'vaginal')
+                        if self.event_triggers_dict.get("last_day_sex_pref_increased", -1) != day:
+                            _used_type = getattr(_used_toy, 'toy_type', 'vaginal')
                             if _used_type == 'anal':
                                 self.like_anal = min(5, getattr(self, 'like_anal', 0) + 1)
                                 self.event_triggers_dict["last_day_sex_pref_increased"] = day
@@ -2501,7 +2516,7 @@ class Person(PersonStatMixin): #Everything that needs to be known about a person
         lighting = [.98, .98, .98]
 
         disp_key = "P:{}_C:{}_BO:{}".format(self.identifier,
-            hash((self.face_style, self.hair_style.name, self.skin, special_modifier)
+            hash((self.face_style, self.hair_style.name, self.skin, special_modifier, getattr(self, "wetness", 0))
                 + tuple(self.hair_style.colour)
                 + tuple(self.eyes[1])),
             hash(tuple(x.identifier for x in self.base_outfit)))
@@ -2545,7 +2560,7 @@ class Person(PersonStatMixin): #Everything that needs to be known about a person
         disp_key = "ID:{}_C:{}_O:{}".format(self.identifier,
             hash(
                 (position, emotion, special_modifier) +
-                (self.skin, self.face_style, self.tits, self.body_type, self.tan) +
+                (self.skin, self.face_style, self.tits, self.body_type, self.tan, getattr(self, "wetness", 0)) +
                 tuple(flatten_list(lighting))
             ),
             outfit.identifier)
@@ -4342,10 +4357,16 @@ class Person(PersonStatMixin): #Everything that needs to be known about a person
         if fire_event:
             mc.listener_system.fire_event("girl_climax", the_person = self)
 
-        # Squirting: if this person squirts, increase wetness of her clothing
-        if self.event_triggers_dict.get("squirts", False) and self.outfit is not None:
-            for item in self.outfit.upper_body + self.outfit.lower_body:
-                item.wetness = min(getattr(item, 'wetness', 0) + 1, 3)
+        if sex_with_man is True:
+            self.trigger_installed_toy_orgasm_effect(show_dialogue = show_dialogue, add_to_log = add_to_log)
+
+        # Squirting: wetness is tracked on the girl and inherited by all worn clothes.
+        if self.event_triggers_dict.get("squirts", False):
+            self.wetness = min(getattr(self, "wetness", 0) + 2, 3)
+            location = getattr(self, "location", None)
+            if location is not None:
+                for person in location.people:
+                    person.enforce_minimum_arousal_floor()
 
         if renpy.random.randint(0, 100) < self.suggestibility + trance_chance_modifier or force_trance:
             self.increase_trance(show_dialogue = show_dialogue, reset_arousal = reset_arousal, add_to_log = add_to_log, sex_with_man = sex_with_man, sex_act_type = sex_act_type, bypass_daily_sex_pref_limit = bypass_daily_sex_pref_limit)
@@ -5487,6 +5508,69 @@ class Person(PersonStatMixin): #Everything that needs to be known about a person
             return False
         max_i = getattr(toy_item, 'max_intensity', 3)
         toy_item.intensity = max(1, min(max_i, level))
+        return True
+
+    def get_daily_usable_toys(self) -> list:
+        """Return toys that can plausibly be used unattended during daily downtime."""
+        return [
+            toy for toy in getattr(self, 'toy_inventory', [])
+            if "installed" in getattr(toy, 'valid_usages', ())
+            and not getattr(toy, 'is_switched_off', False)
+        ]
+
+    def get_random_installed_toy(self):
+        """Return a random installed toy, if any."""
+        _installed_toys = self.installed_toys
+        if not _installed_toys:
+            return None
+        return renpy.random.choice(_installed_toys)
+
+    def apply_toy_lubricant_effect(self, toy_item, add_to_log = False) -> bool:
+        """Apply a toy design's lubricant serum effects, if any, to this person."""
+        design = getattr(toy_item, 'design', None)
+        if design is None:
+            return False
+
+        lubricant_traits = [
+            trait for trait in getattr(design, 'lubricant_traits', [])
+            if isinstance(trait, SerumTrait)
+        ]
+        _lubricant_duration = builtins.max(0, getattr(design, 'lubricant_duration', 0))
+        if not lubricant_traits or _lubricant_duration <= 0:
+            return False
+
+        active_lubricant = next((
+            serum for serum in self.serum_effects
+            if getattr(serum, "is_toy_lubricant", False)
+            or serum.effects_dict.get("toy_lubricant", False)
+            or getattr(serum, "name", "").endswith(" Lubricant")
+        ), None)
+        if active_lubricant is not None:
+            active_lubricant.duration_counter = 0
+            return True
+
+        serum = SerumDesign.clone_serum(f"{getattr(design, 'name', 'Toy')} Lubricant", lubricant_traits)
+        serum.duration = _lubricant_duration
+        self.serum_effects.append(serum)
+        self._applying_serum = True
+        try:
+            serum.run_on_apply(self, add_to_log)
+        finally:
+            self._applying_serum = False
+        serum.effects_dict["toy_lubricant"] = True
+        serum.is_toy_lubricant = True
+        return True
+
+    def trigger_installed_toy_orgasm_effect(self, show_dialogue = True, add_to_log = True) -> bool:
+        """Apply the orgasm-side effects of an installed toy during sex."""
+        _used_toy = self.get_random_installed_toy()
+        if _used_toy is None:
+            return False
+
+        if add_to_log and show_dialogue:
+            renpy.say(None, f"{capitalize_first_word(self.possessive_title)}'s {_used_toy.name} is doing its job, pushing her over the edge.")
+
+        self.apply_toy_lubricant_effect(_used_toy, add_to_log = add_to_log)
         return True
 
     def match_skin(self, color: str):

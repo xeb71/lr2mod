@@ -223,17 +223,22 @@ class Clothing():
 
     @property
     def wet_transparency_factor(self) -> float:
+        return self.get_wet_transparency_factor()
+
+    def get_wet_transparency_factor(self, wetness_override: int | None = None) -> float:
         """Return an alpha multiplier based on wetness level.
 
         0 (none)   → 1.0   (no change)
-        1 (damp)   → 0.75  (25 % more see-through)
-        2 (wet)    → 0.50  (50 % more see-through)
-        3 (soaked) → 0.25  (75 % more see-through)
+        1 (damp)   → 0.80  (20 % transparent)
+        2 (wet)    → 0.60  (40 % transparent)
+        3 (soaked) → 0.40  (60 % transparent)
         """
-        w = max(0, min(getattr(self, 'wetness', 0), 3))
+        if wetness_override is None:
+            wetness_override = getattr(self, 'wetness', 0)
+        w = max(0, min(wetness_override, 3))
         if w == 0:
             return 1.0
-        return max(0.25, 1.0 - w * 0.25)
+        return max(0.4, 1.0 - w * 0.2)
 
     @property
     def layers(self) -> tuple[int, ...]:
@@ -384,7 +389,7 @@ class Clothing():
 
         return image_set.get_image(body_type, tit_size if self.draws_breasts else "AA")
 
-    def generate_item_displayable(self, body_type: str, tit_size: str, position: str, lighting: list[float] | None = None, regions_constrained: list[Clothing] | None = None, nipple_wetness = 0.0) -> renpy.display.core.Displayable:
+    def generate_item_displayable(self, body_type: str, tit_size: str, position: str, lighting: list[float] | None = None, regions_constrained: list[Clothing] | None = None, nipple_wetness = 0.0, wetness_override: int | None = None) -> renpy.display.core.Displayable:
         def _build_composite(items: list[Clothing], body_type, tit_size, position) -> tuple[im.ImageBase, list]:
             composite_list = [position_size_dict.get(position, (0, 0))]
             for item in items:
@@ -423,7 +428,7 @@ class Clothing():
         greyscale_image = im.MatrixColor(the_image, self.colour_adjustment) #Set the image, which will crush all modifiers to 1 (so that future modifiers are applied to a flat image correctly with no unusually large images
 
         colour_matrix = im.matrix.tint(self.colour[0], self.colour[1], self.colour[2]) * im.matrix.tint(*lighting)
-        wet_factor = self.wet_transparency_factor
+        wet_factor = self.get_wet_transparency_factor(wetness_override)
         alpha_matrix = im.matrix.opacity(self.transparency * wet_factor)
         shader_image = im.MatrixColor(greyscale_image, alpha_matrix * colour_matrix) #Now colour the final greyscale image
 

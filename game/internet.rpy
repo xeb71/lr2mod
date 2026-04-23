@@ -147,10 +147,10 @@ init -1 python:
         show_story_progress_action = Action("Show Story Progress", show_story_progress_requirement, "show_story_progress_label")
         show_mc_schedule_action = Action("View Schedule", show_mc_schedule_requirement, "show_mc_schedule_label")
         view_photo_album_action = Action("View Photo Album", view_photo_album_requirement, "view_photo_album_label")
+        other_actions.append("Back")
         other_actions.append(show_story_progress_action)
         other_actions.append(show_mc_schedule_action)
         other_actions.append(view_photo_album_action)
-        other_actions.append("Back")
 
         return [text_actions, internet_actions, other_actions]
 

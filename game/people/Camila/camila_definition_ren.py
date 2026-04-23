@@ -29,7 +29,7 @@ def mc_dancing_skill(): #Wrapper for measuring MC's progress learning to salsa d
 def camila_titles(person: Person):
     valid_titles = []
     valid_titles.append(person.name)
-    if person.effective_sluttiness() > 40:
+    if person.effective_sluttiness() > 40 and person.has_significant_other:
         valid_titles.append("Slutwife")
         valid_titles.append("Cuckold Wife")
     return valid_titles
@@ -37,11 +37,11 @@ def camila_titles(person: Person):
 def camila_possessive_titles(person: Person):
     valid_possessive_titles = [person.title]
 
-    if person.effective_sluttiness() > 60:
+    if person.effective_sluttiness() > 60 and person.has_significant_other:
         valid_possessive_titles.append("the slut wife")
         valid_possessive_titles.append("your swinging slut")
 
-    if person.effective_sluttiness() > 90:
+    if person.effective_sluttiness() > 90 and person.has_significant_other:
         valid_possessive_titles.append("the bar cumdump")
     return valid_possessive_titles
 
@@ -134,7 +134,7 @@ def create_camila_character():
 ##############
 
 def camila_story_character_description():
-    return "A married lifestyle coach who frequents the bar in the evening."
+    return "A lifestyle coach who frequents the bar in the evening."
 
 def camila_story_love_list():
     love_story_list = {}
@@ -169,6 +169,8 @@ def camila_story_love_list():
 
     if camila.love < 60:
         love_story_list[2] = "Increase [camila.fname]'s love to 60"
+    if not camila.story_event_ready("love"):
+        love_story_list[2] = "[camila.fname] needs time before she is ready to progress this story"
     else:
         love_story_list[2] = "[camila.fname] will contact you and continue this story when the time is right"
 
@@ -176,15 +178,33 @@ def camila_story_love_list():
         return love_story_list
 
     love_story_list[2] = "You went on a formal date with [camila.fname] and had a one-night stand."
+    if camila.love < 80:
+        love_story_list[3] = "Increase [camila.fname]'s love to 80"
+    elif not camila.story_event_ready("love"):
+        love_story_list[3] = "[camila.fname] needs time before she is ready to progress this story"
+    else:
+        love_story_list[3] = "[camila.fname] is deciding what she wants for herself, instead of for her husband"
 
-    love_story_list[3] = "This next story step is not yet written"
+    if not camila.event_triggers_dict.get("lost_anal_virginity", False):
+        return love_story_list
 
-    # camila.love_messages[3] = "As an act of retribution to her husband, [camila.fname] gave you her anal virginity."
+    love_story_list[3] = "[camila.fname] gave you her anal virginity as an act that belonged to the two of you, not her marriage."
+    if camila.love < 90:
+        love_story_list[4] = "Increase [camila.fname]'s love to 90"
+    elif not camila.story_event_ready("love"):
+        love_story_list[4] = "[camila.fname] needs time before she is ready to make a final decision"
+    else:
+        love_story_list[4] = "[camila.fname] is ready to decide whether to stay in the hotwife arrangement or leave her husband"
+
+    if camila.event_triggers_dict.get("love_path", None) == "stay_hotwife":
+        love_story_list[4] = "[camila.fname] chose to stay married, but only on terms she controls."
+    elif camila.event_triggers_dict.get("love_path", None) == "leave_husband":
+        love_story_list[4] = "[camila.fname] left her husband and is building something more honest with you."
 
     return love_story_list
 
 def camila_story_love_is_complete():
-    return camila.event_triggers_dict.get("formal_date", False)
+    return camila.event_triggers_dict.get("love_path", None) is not None
 
 def camila_story_lust_list():
     lust_story_list = {}
@@ -235,18 +255,28 @@ def camila_story_lust_list():
         return lust_story_list
 
     lust_story_list[3] = "You fucked [camila.fname] in her own bedroom while her husband watched"
-    lust_story_list[4] = "This story step is not yet written"
+    if camila.sluttiness < 90:
+        lust_story_list[4] = "Raise her sluttiness to 90"
+    elif not camila.story_event_ready("slut"):
+        lust_story_list[4] = "[camila.fname] needs time before she is ready to progress this story"
+    elif not camila.is_at(downtown_bar):
+        lust_story_list[4] = "Talk to [camila.fname] at the bar in the evening"
+    else:
+        lust_story_list[4] = "[camila.fname] is ready to talk about what this arrangement has turned you into for her"
+
+    if camila.event_triggers_dict.get("preferred_bull", False):
+        lust_story_list[4] = "[camila.fname] still plays with the lifestyle, but you are the outside partner she wants first."
 
     return lust_story_list
 
 def camila_story_lust_is_complete():
-    return camila.event_triggers_dict.get("home_sex", False)
+    return camila.event_triggers_dict.get("preferred_bull", False)
 
 def camila_story_obedience_list():
     obedience_story_list = {}
 
-    if camila.obedience < 120:
-        obedience_story_list[0] = "Increase [camila.fname]'s obedience to 120"
+    if camila.obedience < 100:
+        obedience_story_list[0] = "Increase [camila.fname]'s obedience to 100"
     if not camila.story_event_ready("obedience"):
         obedience_story_list[0] = "[camila.fname] needs time before she is ready to progress this story"
     if not camila.is_at(mall):
@@ -256,49 +286,72 @@ def camila_story_obedience_list():
         return obedience_story_list
 
     obedience_story_list[0] = "You got [camila.fname] to help you make new business goals"
-
-    if camila.obedience < 140:
-        obedience_story_list[1] = "Increase [camila.fname]'s obedience to 140"
+    if camila.obedience < 120:
+        obedience_story_list[1] = "Increase [camila.fname]'s obedience to 120"
     if not camila.story_event_ready("obedience"):
         obedience_story_list[1] = "[camila.fname] needs time before she is ready to progress this story"
     if not camila.is_at(mall):
         obedience_story_list[1] = "Talk to [camila.fname] when she is at the mall"
 
-    if not camila.event_triggers_dict.get("sex_goal_coach", False):
+    if not camila.event_triggers_dict.get("personal_goal_coach", False):
         return obedience_story_list
 
-    obedience_story_list[1] = "You got [camila.fname] to help you make new sexual goals"
-
-    if camila.obedience < 160:
-        obedience_story_list[2] = "Increase [camila.fname]'s obedience to 160"
+    obedience_story_list[1] = "You got [camila.fname] to help you redefine your personal goals."
+    if camila.obedience < 140:
+        obedience_story_list[2] = "Increase [camila.fname]'s obedience to 140"
     if not camila.story_event_ready("obedience"):
         obedience_story_list[2] = "[camila.fname] needs time before she is ready to progress this story"
     if not camila.is_at(mall):
         obedience_story_list[2] = "Talk to [camila.fname] when she is at the mall"
 
-    if not camila.event_triggers_dict.get("obedience_titfuck", False):
+    if not camila.event_triggers_dict.get("sex_goal_coach", False):
         return obedience_story_list
 
-    obedience_story_list[2] = "[camila.fname] helped you realise your love for tits, when you finished all over hers."
+    obedience_story_list[2] = "You got [camila.fname] to help you make new sexual goals"
 
-    if camila.obedience < 180:
-        obedience_story_list[3] = "Increase [camila.fname]'s obedience to 180"
+    if camila.obedience < 160:
+        obedience_story_list[3] = "Increase [camila.fname]'s obedience to 160"
     if not camila.story_event_ready("obedience"):
         obedience_story_list[3] = "[camila.fname] needs time before she is ready to progress this story"
     if not camila.is_at(mall):
         obedience_story_list[3] = "Talk to [camila.fname] when she is at the mall"
 
-    obedience_story_list[4] = "The next story step has not yet been written."
+    if not camila.event_triggers_dict.get("obedience_titfuck", False):
+        return obedience_story_list
+
+    obedience_story_list[3] = "[camila.fname] helped you realise your love for tits, when you finished all over hers."
+
+    if camila.obedience < 180:
+        obedience_story_list[4] = "Increase [camila.fname]'s obedience to 180"
+    if not camila.story_event_ready("obedience"):
+        obedience_story_list[4] = "[camila.fname] needs time before she is ready to progress this story"
+    if not camila.is_at(mall):
+        obedience_story_list[4] = "Talk to [camila.fname] when she is at the mall"
+
+    if not camila.event_triggers_dict.get("obedience_ass_man", False):
+        return obedience_story_list
+
+    obedience_story_list[4] = "[camila.fname] helped you embrace exactly how much you love taking a woman from behind."
 
     return obedience_story_list
 
 def camila_story_obedience_is_complete():
-    return camila.event_triggers_dict.get("obedience_titfuck", False)
+    return camila.event_triggers_dict.get("obedience_ass_man", False)
 
 def camila_story_teamup_list() -> dict[int, tuple[Person, str]]:
+    if camila.event_triggers_dict.get("boudoir_stage", 0) > 0:
+        alexia_text = "[alexia.fname] helped [camila.fname] through her first boudoir shoot at your office."
+    else:
+        alexia_text = "[camila.fname] is interested in boudoir work. If [alexia.fname] is your model, she can help Camila start."
+
+    if camila.event_triggers_dict.get("nora_goal_teamup_intro", False):
+        nora_text = "[nora.fname] and [camila.fname] compared notes on ambition, coaching, and setting better goals."
+    else:
+        nora_text = "[camila.fname]'s goal coaching could pair well with [nora.fname]'s academic perspective once both stories are far enough along."
+
     return {
-        0: (alexia, "This teamup is not yet written"),
-        1: (nora, "This teamup is not yet written")
+        0: (alexia, alexia_text),
+        1: (nora, nora_text)
     }
 
 def camila_story_other_list():
@@ -309,13 +362,23 @@ def camila_story_other_list():
     other_story_list = {}
 
     if camila.event_triggers_dict.get("bar_met", False):
-        other_story_list[0] = "[camila.fname] is happily married but in an open marriage"
+        if camila.event_triggers_dict.get("love_path", None) == "leave_husband":
+            other_story_list[0] = "[camila.fname] left her husband and shut down the old hotwife arrangement."
+        elif camila.event_triggers_dict.get("preferred_bull", False):
+            other_story_list[0] = "[camila.fname] is still married, but you are her preferred bull in their open arrangement."
+        elif camila.event_triggers_dict.get("home_sex", False):
+            other_story_list[0] = "[camila.fname] and her husband are deep into the hotwife lifestyle together."
+        else:
+            other_story_list[0] = "[camila.fname] is married, but her relationship is under strain."
         other_story_list[1] = "[camila.fname] doesn't have any children"
 
     dancing_skill = str(mc_dancing_skill())
     other_story_list[2] = "Your skill level at salsa dancing is " + dancing_skill + " / 20"
     if camila.event_triggers_dict.get("bathroom_sex", False):
-        other_story_list[3] = "[camila.fname] is infertile"
+        if camila.is_infertile:
+            other_story_list[3] = "[camila.fname] is infertile"
+        else:
+            other_story_list[3] = "[camila.fname] used to be infertile, but that is no longer true"
 
     return other_story_list
 

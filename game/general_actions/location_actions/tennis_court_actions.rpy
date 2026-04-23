@@ -89,30 +89,34 @@ init 3 python:
     challenge_member_action = ActionMod("Challenge a Team Member {image=time_advance}", challenge_member_requirement, "challenge_member_label",
         initialization = tennis_initialization, menu_tooltip = "Challenge one of your team members to a match with a wager.", category="Mall")
 
-    def resolve_tennis_set(tactic, energy_before, focus_stat, cap_difficulty):
+    def resolve_tennis_set(tactic, captain, cap_difficulty):
         """Return (won, energy_cost) for one set of the minigame.
 
         tactic:        "power" | "rally" | "finesse"
-        energy_before: mc.energy at the start of this set
-        focus_stat:    mc.focus
+        captain:       opposing captain
         cap_difficulty: float 0–1, higher = harder captain
         """
+        mc_max_energy = max(mc.max_energy, 1)
+        captain_max_energy = max(getattr(captain, "max_energy", 100), 1)
+        energy_edge = (mc_max_energy / float(mc_max_energy + captain_max_energy)) - 0.5
+        focus_edge = max(-0.5, min(0.5, (mc.focus - getattr(captain, "focus", 0)) / 10.0))
+
         if tactic == "power":
             energy_cost = 15
-            energy_factor = energy_before / max(mc.max_energy, 1)
-            win_chance = 0.40 + energy_factor * 0.45 - cap_difficulty
+            win_chance = 0.72 + energy_edge * 0.55 + focus_edge * 0.10 - cap_difficulty
         elif tactic == "rally":
             energy_cost = 10
-            energy_factor = energy_before / max(mc.max_energy, 1)
-            focus_factor = min(focus_stat / 10.0, 1.0)
-            win_chance = 0.35 + energy_factor * 0.25 + focus_factor * 0.20 - cap_difficulty
+            win_chance = 0.64 + energy_edge * 0.35 + focus_edge * 0.20 - cap_difficulty
         else:  # finesse
             energy_cost = 8
-            focus_factor = min(focus_stat / 10.0, 1.0)
-            win_chance = 0.30 + focus_factor * 0.50 - cap_difficulty
+            win_chance = 0.58 + energy_edge * 0.15 + focus_edge * 0.45 - cap_difficulty
         win_chance = max(0.15, min(0.90, win_chance))
         won = renpy.random.random() < win_chance
         return won, energy_cost
+
+    def tennis_captain_love_difficulty_adjustment(captain):
+        """Return how much captain difficulty is reduced by love, capped at 40 love."""
+        return min(max(captain.love, 0), 40) * 0.005
 
 label tennis_solo_label():
     menu:
@@ -330,16 +334,15 @@ label challenge_captain_label():
 
 
 # Best-of-three minigame against a team captain.
-# Energy and focus are the main attributes that decide each set.
+# Max energy and focus are the main attributes that decide each set.
 # Winning the match increases the captain's obedience by 10.
 label tennis_captain_match(captain):
     python:
         mc.change_location(sports_center_tennis_courts)
         _cap_team = captain.event_triggers_dict.get("tennis_team", "perky")
         _base_diff = {"perky": 0.35, "showoff": 0.50, "commando": 0.60}[_cap_team]
-        # More obedient captain is marginally less aggressive.
-        _cap_difficulty = _base_diff - max(0, captain.obedience - 80) * 0.002
-        _cap_difficulty = max(0.20, min(0.75, _cap_difficulty))
+        _cap_difficulty = _base_diff - tennis_captain_love_difficulty_adjustment(captain)
+        _cap_difficulty = max(0.10, min(0.75, _cap_difficulty))
         _sets_won  = 0
         _sets_lost = 0
 
@@ -360,7 +363,7 @@ label tennis_captain_match(captain):
     menu:
         "Power serves — put your energy behind every shot" if mc.energy >= 15:
             python:
-                _set1_won, _cost1 = resolve_tennis_set("power", mc.energy, mc.focus, _cap_difficulty)
+                _set1_won, _cost1 = resolve_tennis_set("power", captain, _cap_difficulty)
                 mc.change_energy(-_cost1)
             if _set1_won:
                 "Your serve fires off the racket like a shot. [captain.display_name] scrambles but can't find a reply. You take the first set."
@@ -372,7 +375,7 @@ label tennis_captain_match(captain):
             pass
         "Steady baseline rally — wear her down with consistency":
             python:
-                _set1_won, _cost1 = resolve_tennis_set("rally", mc.energy, mc.focus, _cap_difficulty)
+                _set1_won, _cost1 = resolve_tennis_set("rally", captain, _cap_difficulty)
                 mc.change_energy(-_cost1)
             if _set1_won:
                 "You trade groundstrokes patiently, waiting for your moment. [captain.display_name] starts forcing shots and gives the set away."
@@ -382,7 +385,7 @@ label tennis_captain_match(captain):
                 $ _sets_lost += 1
         "Touch and angles — outthink her with your focus":
             python:
-                _set1_won, _cost1 = resolve_tennis_set("finesse", mc.energy, mc.focus, _cap_difficulty)
+                _set1_won, _cost1 = resolve_tennis_set("finesse", captain, _cap_difficulty)
                 mc.change_energy(-_cost1)
             if _set1_won:
                 "Your angle play leaves [captain.display_name] wrong-footed at every turn. She shakes her head as you close out the set."
@@ -403,7 +406,7 @@ label tennis_captain_match(captain):
     menu:
         "Power serves — unleash everything you have" if mc.energy >= 15:
             python:
-                _set2_won, _cost2 = resolve_tennis_set("power", mc.energy, mc.focus, _cap_difficulty)
+                _set2_won, _cost2 = resolve_tennis_set("power", captain, _cap_difficulty)
                 mc.change_energy(-_cost2)
             if _set2_won:
                 "Your power game stays at the same ferocious level. [captain.display_name] fights hard but you close out the second set."
@@ -415,7 +418,7 @@ label tennis_captain_match(captain):
             pass
         "Steady baseline rally — keep the pressure up":
             python:
-                _set2_won, _cost2 = resolve_tennis_set("rally", mc.energy, mc.focus, _cap_difficulty)
+                _set2_won, _cost2 = resolve_tennis_set("rally", captain, _cap_difficulty)
                 mc.change_energy(-_cost2)
             if _set2_won:
                 "Patience wins the day. You outrun [captain.display_name] through the second set and take it."
@@ -425,7 +428,7 @@ label tennis_captain_match(captain):
                 $ _sets_lost += 1
         "Touch and angles — keep her guessing":
             python:
-                _set2_won, _cost2 = resolve_tennis_set("finesse", mc.energy, mc.focus, _cap_difficulty)
+                _set2_won, _cost2 = resolve_tennis_set("finesse", captain, _cap_difficulty)
                 mc.change_energy(-_cost2)
             if _set2_won:
                 "Your placement keeps [captain.display_name] constantly off balance. A perfectly placed winner closes out the second set."
@@ -443,7 +446,7 @@ label tennis_captain_match(captain):
         menu:
             "Power serves — give absolutely everything" if mc.energy >= 15:
                 python:
-                    _set3_won, _cost3 = resolve_tennis_set("power", mc.energy, mc.focus, _cap_difficulty)
+                    _set3_won, _cost3 = resolve_tennis_set("power", captain, _cap_difficulty)
                     mc.change_energy(-_cost3)
                 if _set3_won:
                     "You leave nothing in reserve. Your serve is unstoppable in the final set and you battle through to take it."
@@ -455,7 +458,7 @@ label tennis_captain_match(captain):
                 pass
             "Steady baseline — stay calm and grind it out":
                 python:
-                    _set3_won, _cost3 = resolve_tennis_set("rally", mc.energy, mc.focus, _cap_difficulty)
+                    _set3_won, _cost3 = resolve_tennis_set("rally", captain, _cap_difficulty)
                     mc.change_energy(-_cost3)
                 if _set3_won:
                     "You grind every single point out. [captain.display_name] gives it everything but your consistency sees you through to the end."
@@ -465,7 +468,7 @@ label tennis_captain_match(captain):
                     $ _sets_lost += 1
             "Touch and angles — win it with your head":
                 python:
-                    _set3_won, _cost3 = resolve_tennis_set("finesse", mc.energy, mc.focus, _cap_difficulty)
+                    _set3_won, _cost3 = resolve_tennis_set("finesse", captain, _cap_difficulty)
                     mc.change_energy(-_cost3)
                 if _set3_won:
                     "One perfectly placed drop shot seals it. [captain.display_name] watches the ball die and nods slowly."

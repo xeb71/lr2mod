@@ -126,13 +126,12 @@ label camila_outfit_help_label(the_person):    #20
     return
 
 label camila_outfit_love_restore_label(the_person):
-    pass
-
+    "You remember the first time [the_person.title] let you into her personal life."
     $ the_person.story_event_log("love")
     return
 
 label camila_outfit_love_label(the_person):
-    pass
+    "Helping [the_person.title] pick out a date-night outfit felt innocent at the time, but it was the start of something bigger."
     return
 
 label camila_lingerie_help_label(the_person):  #40
@@ -304,13 +303,12 @@ label camila_lingerie_help_label(the_person):  #40
     return
 
 label camila_lingerie_love_restore_label(the_person):
-    pass
-
+    "The memory of [the_person.title] changing lingerie for you still makes you smile."
     $ the_person.story_event_log("love")
     return
 
 label camila_lingerie_love_label(the_person):
-    pass
+    "You think about the way [the_person.title] trusted you enough to share something far more intimate than a normal shopping trip."
     return
 
 label camila_formal_date_label():    #60
@@ -546,33 +544,124 @@ label camila_formal_date_label():    #60
     return
 
 label camila_date_love_restore_label(the_person):
-    pass
-
-
+    "That formal date still lingers in your mind whenever you think about [the_person.title]."
     $ the_person.story_event_log("love")
     return
 
 label camila_date_love_label(the_person):
-    pass
+    "Your dinner with [the_person.title] was the moment the line between helping her and wanting more truly disappeared."
     return
 
-label camila_gives_anal_virginity_label(the_person): #80
-    "In this scene, Camila gives MC her anal virginity."
-    $ the_person.add_unique_on_room_enter_event(camila_decision_time)
+label camila_gives_anal_virginity_label(): #80
+    $ the_person = camila
+    "As you are settling in for the evening your phone buzzes with a text from [the_person.possessive_title]."
+    $ mc.start_text_convo(the_person)
+    the_person "Señor... are you home tonight?"
+    mc.name "I am. Is everything okay?"
+    the_person "Not really. But I know what I want right now, and I need to stop thinking before I lose my nerve."
+    the_person "Can I come over?"
+    mc.name "Come over."
+    $ mc.end_text_convo()
+    "It doesn't take long before you hear a knock at your door."
+    $ mc.change_location(bedroom)
+    $ the_person.apply_outfit(the_person.wardrobe.get_outfit_with_name("Camila Summer Dress") or the_person.get_random_appropriate_outfit(guarantee_output = True))
+    $ the_person.draw_person()
+    the_person "Hola..."
+    "She steps inside, shuts the door behind her, and leans back against it for a moment."
+    the_person "I spent all day thinking about him. About what he hid from me. About how long he let me twist myself into knots just to make his fantasy come true."
+    the_person "And then I kept thinking about the one thing I still hadn't given away."
+    mc.name "You don't owe anyone anything, [the_person.fname]."
+    $ the_person.draw_person(position = "kissing")
+    "She crosses the room and presses herself against you."
+    the_person "I know. That's why I came here."
+    the_person "My ass was always supposed to be ours. Mine and his. Something special we would maybe do one day."
+    the_person "Now I want it to be mine again. My choice. And I want to give that choice to you."
+    mc.name "Are you sure?"
+    the_person "Sí. But you have to go slow with me."
+    "You kiss her softly and help her out of her dress."
+    $ the_person.strip_outfit()
+    $ the_person.draw_person(position = "stand4")
+    "Naked in front of you, she looks nervous, but not uncertain."
+    the_person "No pictures. No husband. No audience."
+    the_person "Just us."
+    mc.name "Just us."
+    "You guide her onto the bed and spend several long minutes kissing, touching, and getting her to breathe through the nerves."
+    $ the_person.change_arousal(30)
+    $ mc.change_locked_clarity(40)
+    the_person "Okay... I want it. Take me."
+    python:
+        first_node = dom_sex_path_node(anal_on_lap, completion_requirement = dom_requirement_mc_aroused)
+        final_node = dom_sex_path_node(anal_cowgirl, completion_requirement = dom_requirement_creampie)
+        sex_path = [first_node, final_node]
+    call get_fucked(the_person, the_goal = "anal creampie", sex_path = sex_path, private = True, start_position = anal_on_lap, start_object = make_bed(), skip_intro = True, allow_continue = False) from _call_get_fucked_camila_gives_anal_virginity_01
+    $ the_report = _return
+    if the_report.get("girl orgasms", 0) > 0:
+        the_person "Oh god... I can't believe I just did that..."
+        the_person "And I can't believe how good it felt with you."
+    else:
+        the_person "That was a lot... but I'm glad it was you."
+    if the_report.get("guy orgasms", 0) > 0:
+        "You hold her close while both of you come down from it together."
+    python:
+        del sex_path
+        del first_node
+        del final_node
+    $ the_person.draw_person(position = "kissing")
+    "You kiss her forehead and she lets out a shaky laugh."
+    the_person "Look at me. I came here furious at my husband, and now I'm smiling because my ass is sore."
+    mc.name "I've heard worse coping strategies."
+    $ the_person.change_stats(love = 4, sluttiness = 2, obedience = 2)
+    $ camila.event_triggers_dict["lost_anal_virginity"] = True
+    $ camila.event_triggers_dict["anal_sex"] = True
+    $ add_camila_decision_time_action()
     return
 
 label camila_anal_love_restore_label(the_person):
-    pass
-
-
+    "You can still feel the weight of what it meant when [the_person.title] chose to share that first with you."
     $ the_person.story_event_log("love")
     return
 
 label camila_anal_love_label(the_person):
-    pass
+    "When [the_person.title] gave you her anal virginity, it was the clearest sign yet that this story had become about the two of you."
     return
 
-label camila_decision_time_label(the_person):
-    "In this label, you help Camila reach a decision. Will she leave her husband, or continue hotwifing?"
+label camila_decision_time_label():
+    $ the_person = camila
+    "The next afternoon, [the_person.possessive_title] asks you to meet her for coffee."
+    $ mc.change_location(coffee_shop)
+    $ the_person.draw_person(position = "sitting")
+    "She is already there when you arrive, fingers wrapped around a cup she clearly hasn't touched."
+    the_person "I talked to him."
+    mc.name "How did it go?"
+    the_person "Messy. Honest, finally, but messy."
+    the_person "He admitted that he liked the fantasy long before he ever told me. He admitted he should have trusted me sooner. He admitted he liked having things tilted in his favour."
+    the_person "And then he asked what I wanted."
+    the_person "I told him I didn't know yet."
+    "She looks up at you and holds your gaze."
+    the_person "But I do know now that whatever happens next, I don't want to slide back into being the woman who only reacts to what men want from her."
+    mc.name "Then don't. Choose."
+    menu:
+        "Tell her to stay, but on her terms":
+            mc.name "If you still want the lifestyle, keep it. Just stop letting it belong to him more than it belongs to you."
+            mc.name "Set the rules. Make him earn your trust back. If he wants a hotwife, he gets the version you choose to be."
+            $ the_person.change_stats(love = 2, happiness = 5, sluttiness = 2)
+            the_person "That... actually feels right."
+            the_person "I don't know if the marriage survives forever, but for now I want to see if there is something worth rebuilding."
+            the_person "Only this time, I make the rules."
+            $ camila.event_triggers_dict["love_path"] = "stay_hotwife"
+        "Tell her to leave him for you":
+            mc.name "You don't owe him a second chance just because he finally stopped lying."
+            mc.name "If the marriage is over for you, let it be over."
+            mc.name "Then start building something honest instead."
+            $ the_person.draw_person(position = "kissing")
+            "She leans across the table and kisses you, quick but certain."
+            $ the_person.change_stats(love = 5, happiness = 3)
+            the_person "Then that's what I'm going to do. I can grieve the marriage and still admit I want more than it was giving me."
+            the_person "No more hotwife games. No more pretending I am okay with half-truths."
+            $ camila.event_triggers_dict["former_husband_name"] = camila.SO_name
+            $ camila.relationship = "Single"
+            $ camila.SO_name = None
+            $ camila.event_triggers_dict["love_path"] = "leave_husband"
+    $ camila_alexia_boudoir_intro_setup()
     $ the_person.story_event_log("love")
     return

@@ -352,6 +352,9 @@ def sex_can_continue(person: Person, the_node: dom_sex_path_node = None): #Use t
         return False
     return True
 
+def GIC_must_want_to_continue(person: Person) -> bool:
+    return person.opinion.being_submissive >= 2 and person.happiness > 150
+
 def requires_condom(person: Person):
     if person == kaya and persistent.pregnancy_pref != 0:
         return False

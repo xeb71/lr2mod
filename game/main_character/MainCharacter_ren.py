@@ -228,9 +228,12 @@ class MainCharacter():
         self.recently_orgasmed = False # reset on location change
         if self.is_at(destination):
             return False
+        old_hub = self.current_location_hub
         self._set_location(destination)
+        destination_hub = self.current_location_hub
         for person in (x for x in list_of_people if x.follow_mc):
-            person.change_location(destination)
+            if person.follow_mc_everywhere or (old_hub == destination_hub and person.is_at(old_hub)):
+                person.change_location(destination)
         if show_background:
             self.location.show_background()
         return True

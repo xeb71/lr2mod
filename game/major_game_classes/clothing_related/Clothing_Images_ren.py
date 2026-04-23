@@ -61,6 +61,8 @@ class Facial_Accessory_Images(NoRollback):
 
     def get_image(self, face: str, emotion: str, special_modifier: str | None = None) -> ImageBase:
         global mobile_zip_dict
+        if emotion not in Facial_Accessory_Images.supported_emotions:
+            emotion = "default"
         index_string = f"{face}_{emotion}"
         if special_modifier:
             if self.images[f"{index_string}_{special_modifier}"] in mobile_zip_dict[self.position_name].namelist():
@@ -78,6 +80,8 @@ class Facial_Accessory_Images(NoRollback):
     def get_image_name(self, face: str, emotion: str, special_modifier: str | None = None) -> str:
         global mobile_zip_dict
         file = mobile_zip_dict[self.position_name]
+        if emotion not in Facial_Accessory_Images.supported_emotions:
+            emotion = "default"
         index_string = f"{face}_{emotion}"
         if special_modifier is not None and f"{index_string}_{special_modifier}" in file.namelist():
             index_string += f"_{special_modifier}"  #We only want to try and load special modifier images if they exist. Otherwise we use the unmodified image to avoid a crash. This lets us omit images we do not plan on actually using, such as glasses not needing blowjob poses.

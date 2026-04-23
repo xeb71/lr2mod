@@ -313,7 +313,11 @@ label uniform_manager_loop():
     return
 
 label set_serum_description():
-    call screen assign_division_serum()
+    call screen assign_division_serum(serum_type = "daily")
+    return
+
+label set_weekend_serum_description():
+    call screen assign_division_serum(serum_type = "weekend")
     return
 
 label mc_research_breakthrough(new_level, clarity_cost):
@@ -378,16 +382,16 @@ label engineering_design_new_toy_description():
     $ show_ui()
     if isinstance(_return, tuple):
         python:
-            _blueprint, _battery, _components = _return
+            _blueprint, _battery, _components, _lubricant_traits = _return
             _default_name = "Custom " + _blueprint.name
             _toy_name = renpy.input("Name your new toy design:", default=_default_name, length=50)
             if not _toy_name or not _toy_name.strip():
                 _toy_name = _default_name
-            create_custom_toy_design(_blueprint, _battery, _components, _toy_name)
+            create_custom_toy_design(_blueprint, _battery, _components, _toy_name, _lubricant_traits)
         call advance_time() from _call_advance_time_eng_design
     return
 
-label toy_upgrade_confirm_label(design, sel_bat, sel_comps):
+label toy_upgrade_confirm_label(design, sel_bat, sel_comps, sel_lubricant_traits = None):
     $ _upg_stock = mc.business.get_toy_count(design.name)
     # Per-unit cost = sum of new component production costs × 2
     $ _upg_cost_per = (getattr(sel_bat, 'production_cost_add', 0) + sum(getattr(c, 'production_cost_add', 0) for c in sel_comps)) * 2
@@ -400,9 +404,9 @@ label toy_upgrade_confirm_label(design, sel_bat, sel_comps):
     menu:
         "Upgrade '[design.name]' to the new design? ([_upg_stock] unit(s) in stock, $[_upg_cost_per] per unit | [_upg_client_count] client(s) with this toy)"
         "Upgrade all stock — $[_upg_base_cost] (no free replacements for clients)":
-            $ perform_toy_upgrade(design, sel_bat, sel_comps, _upg_base_cost)
+            $ perform_toy_upgrade(design, sel_bat, sel_comps, sel_lubricant_traits, _upg_base_cost)
         "Upgrade all stock + free replacements for [_upg_client_count] client(s) — $[_upg_full_cost] (stock $[_upg_base_cost] + clients $[_upg_client_cost])":
-            $ perform_toy_upgrade(design, sel_bat, sel_comps, _upg_full_cost)
+            $ perform_toy_upgrade(design, sel_bat, sel_comps, sel_lubricant_traits, _upg_full_cost)
         "Cancel upgrade":
             pass
     return

@@ -2,7 +2,7 @@
 # At first, she is hesitant, but with encouragement she engages in multiple sex acts with MC
 
 label camila_bar_date_wrapper_label(the_person):
-    "Test label. We skip the foreplay and go straight to drinking now."
+    "You and [the_person.title] settle in for a drink together."
     call bar_date_main_label(the_person) from _drinking_time_with_camila_01
     return
 
@@ -19,21 +19,30 @@ label camila_get_a_drink_label(the_person):
             if renpy.random.randint(0,100) < ran_num and mc.inventory.has_serum:  #Success
                 the_person "Hmm... Okay! That sounds great! I'll go find us a table!"
                 "You head over to the bar and order yourself a beer, and a cocktail for [the_person.title]."
-                the_person.SO_name "Here you go, one beer, and a cocktail for the beautiful [the_person.fname]."
-                "Sounds like the bartender knows [the_person.title] pretty well. She must be in here often!"
+                if the_person.SO_name:
+                    the_person.SO_name "Here you go, one beer, and a cocktail for the beautiful [the_person.fname]."
+                    "Sounds like the bartender knows [the_person.title] pretty well. She must be in here often!"
+                else:
+                    "BARTENDER" "Here you go, one beer and a cocktail for the lady."
                 "The place is busy, so it's easy to slip some serum into her drink."
                 call give_serum(the_person) from _call_give_serum_camila_01
             else:                                 #Fail
 
                 the_person "That's okay! I prefer to go Dutch anyway."
                 "You head over to the bar and order yourself a beer, [the_person.title] orders herself a fruity sounding cocktail."
-                the_person "Hey there, [the_person.SO_name]! I'll have a flora dora tonight. You know how I like it!"
-                "It sounds like she knows the bartender. She must be in here pretty often!"
+                if the_person.SO_name:
+                    the_person "Hey there, [the_person.SO_name]! I'll have a flora dora tonight. You know how I like it!"
+                    "It sounds like she knows the bartender. She must be in here pretty often!"
+                else:
+                    the_person "I'll have a flora dora tonight."
         "Grab Drinks Separately":
             the_person "That's okay! I prefer to go Dutch anyway."
             "You head over to the bar and order yourself a beer, [the_person.title] orders herself a fruity sounding cocktail."
-            the_person "Hey there, [the_person.SO_name]! I'll have a flora dora tonight. You know how I like it!"
-            "It sounds like she knows the bartender. She must be in here pretty often!"
+            if the_person.SO_name:
+                the_person "Hey there, [the_person.SO_name]! I'll have a flora dora tonight. You know how I like it!"
+                "It sounds like she knows the bartender. She must be in here pretty often!"
+            else:
+                the_person "I'll have a flora dora tonight."
     $ the_person.draw_person(position = "sitting")
     "You sit down at a table with [the_person.title]."
 
@@ -96,7 +105,9 @@ label camila_get_a_drink_label(the_person):
         mc.name "Good, glad to hear it's working out for you."
         the_person "Yeah... he umm... he's started asking me if, you know, I'm almost ready to take things to the next level..."
         mc.name "Oh yeah? Meaning what?"
-        the_person "Well, you know, not just blowing a guy but, letting him fuck me..." #TODO Finish this
+        the_person "Well, you know, not just blowing a guy but, letting him fuck me..."
+        the_person "Papi says that if I'm going to keep teasing him with pictures, eventually I should let someone really have me."
+        the_person "Just saying it out loud makes my stomach flip. Part of me is curious... the rest of me is terrified."
         "You just about choke on your drink."
         mc.name "Hey, I'd be glad to help out. But obviously, don't rush into it if you aren't ready yet."
         "[the_person.title] takes a long sip from her cocktail."
@@ -132,11 +143,22 @@ label camila_get_a_drink_label(the_person):
             "You make small talk with [the_person.possessive_title] for a while. Eventually you finish your drinks and part ways."
 
     else:
-        the_person "Thanks for the drink, [the_person.mc_title]. This whole adventure has really supercharged my sex life, it's nice to have a break from fucking and just enjoy a stiff drink."
-        mc.name "Yeah, so is [the_person.SO_name] still enjoying your new lifestyle?"
-        the_person "Oh god, we both are. I've started fucking around with a couple other guys too. Last time I came home, he tied me up and umm... reclaimed me in every hole he could fit it in..."
-        mc.name "Damn! That sounds hot!"
-        the_person "Yeah! I came so many times... you didn't forget my address did you? You should stop by sometime and we could fuck around again."
+        if camila.event_triggers_dict.get("love_path", None) == "leave_husband":
+            the_person "Thanks for the drink, [the_person.mc_title]. Things have been strange since I left him, but quieter too."
+            mc.name "How are you holding up?"
+            the_person "Better than I expected. No more sneaking around for his fantasy. Now, if I want you, I just have to say it."
+            the_person "And right now? I mostly wanted to relax with someone who has actually been honest with me."
+        elif camila.event_triggers_dict.get("preferred_bull", False):
+            the_person "Thanks for the drink, [the_person.mc_title]. This whole adventure has really supercharged my sex life."
+            mc.name "Yeah? Still enjoying the arrangement?"
+            the_person "Very much. But let's be honest... when I really want to get wrecked, you're the man I think about first."
+            the_person "Papi gets off on my stories about other men, but he gets downright obsessed when the other man is you."
+        else:
+            the_person "Thanks for the drink, [the_person.mc_title]. This whole adventure has really supercharged my sex life, it's nice to have a break from fucking and just enjoy a stiff drink."
+            mc.name "Yeah, so is [the_person.SO_name] still enjoying your new lifestyle?"
+            the_person "Oh god, we both are. I've started fucking around with a couple other guys too. Last time I came home, he tied me up and umm... reclaimed me in every hole he could fit it in..."
+            mc.name "Damn! That sounds hot!"
+            the_person "Yeah! I came so many times... you didn't forget my address did you? You should stop by sometime and we could fuck around again."
         mc.name "Don't worry, I haven't forgotten."
         "You and [the_person.title] finish your drinks and then you say goodbye."
 
@@ -660,11 +682,33 @@ label camila_her_place_label():
     $ perk_system.add_stat_perk(Stat_Perk(description = "Fucking Camila in front of her husband has made you feel more charismatic.", cha_bonus = 1, bonus_is_temp = False), "Camila Charisma Bonus")
     $ mc.change_location(bedroom)
     $ camila.event_triggers_dict["home_sex"] = True
+    $ add_camila_preferred_bull_action()
     return
 
 # Repeatable scenes
 label camila_go_dancing_label(the_person):
-    pass
+    $ the_person.draw_person(position = "sitting")
+    "You offer [the_person.title] a hand and lead her out to the dance floor."
+    $ the_person.draw_person(position = "kissing")
+    "The two of you ease into the music together. Her body stays close to yours the whole song, warm and loose and eager."
+    if camila.event_triggers_dict.get("love_path", None) == "leave_husband":
+        the_person "Mmm... dancing with you feels different now. Less like I am sneaking something, more like I am choosing it."
+        mc.name "Good. That's exactly what it should feel like."
+        "You keep dancing until the song winds down, then steal one slow kiss before heading back to the bar."
+        $ the_person.draw_person(position = "stand2")
+        call advance_time() from _call_advance_camila_repeat_dancing
+        return
+
+    the_person "Mmm... I still love this. The music, your hands on me... all of it."
+    if camila.event_triggers_dict.get("preferred_bull", False):
+        the_person "And when I dance like this with you, I already know whose cock I want by the end of the song."
+    menu:
+        "Take it to the bathroom" if the_person.event_triggers_dict.get("will_fuck", False):
+            call camila_bathroom_sex_label(the_person) from _call_camila_repeat_dancing_bathroom_sex
+        "Call it a night":
+            "You stay close until the music ends, then share a lingering kiss before heading back to your drinks."
+            $ the_person.draw_person(position = "stand2")
+            call advance_time() from _call_advance_camila_repeat_dancing_no_sex
     return
 
 label camila_take_pics_label(the_person):  #Not the first time.
@@ -767,7 +811,10 @@ label camila_take_pics_label(the_person):  #Not the first time.
             the_person "Hey! Don't forget to take pictures!"
             "You suddenly remember the phone. You snap a couple pictures of her face with your cum covering it."
     $ the_person.draw_person (position = "stand2")
-    the_person "Mmm, that was great [the_person.mc_title]! I can't wait until I get home tonight... I hope daddy gets the handcuffs out again..."
+    if camila.event_triggers_dict.get("preferred_bull", False):
+        the_person "Mmm, that was great [the_person.mc_title]! I swear every time you touch me I end up wanting more than anybody else can give me..."
+    else:
+        the_person "Mmm, that was great [the_person.mc_title]! I can't wait until I get home tonight... I hope daddy gets the handcuffs out again..."
     $ clear_scene()
     $ mc.change_location(downtown_bar)
     "You say goodbye and excuse yourself while she gets herself cleaned up. This arrangement is working out to be very beneficial!"
@@ -785,6 +832,8 @@ label camila_home_sex_label(the_person):
     $ the_person.apply_outfit(get_camila_lingerie_set_pink(), update_taboo = True)
     $ the_person.draw_person(position = "stand4")
     "She opens up the bedroom door and motions for you to follow her. As you step into her bedroom you see [the_person.SO_name] sitting at the edge of the bed again."
+    if camila.event_triggers_dict.get("preferred_bull", False):
+        "He gives you a look that is half gratitude and half envy. It is obvious by now that when [the_person.title] really wants to get wrecked, you are the one she calls."
     $ the_person.change_to_bedroom()
     "You nod at him, and he gives a brief nod back. You turn your attention back to [the_person.title]."
     the_person "Mmm, I can't wait. Let's go!"
@@ -816,4 +865,25 @@ label camila_home_sex_label(the_person):
     "You make your way back home after a sexy evening with [the_person.possessive_title]."
 
     call advance_time() from _call_advance_camila_home_sex
+    return
+
+label camila_preferred_bull_label(the_person):
+    $ the_person.draw_person(position = "sitting")
+    $ the_person.story_event_log("lust")
+    "You slide onto the stool beside [the_person.possessive_title] and order a drink."
+    the_person "Perfect timing. I was actually hoping I'd see you tonight."
+    mc.name "That sounds promising."
+    the_person "It is. Ever since that night at my place, things have changed."
+    the_person "Papi still loves the fantasy, and I still enjoy giving it to him... but when I want the best part of it, I think about you."
+    mc.name "The best part?"
+    $ the_person.draw_person(position = "stand4", emotion = "happy")
+    the_person "Sí. The part where I get to let go and trust that the man touching me knows exactly how to make me come apart."
+    the_person "I've fooled around with a couple of other men now, but none of them make me feel the way you do."
+    the_person "So if you're willing... I want you to be my first call. My favourite."
+    mc.name "I can live with being your favourite bull."
+    $ the_person.change_stats(happiness = 5, sluttiness = 2, love = 2, obedience = 2)
+    the_person "Good. Then whenever I text, you'll know it means I really need you."
+    "You clink glasses with her. The arrangement may still be built around her marriage, but inside it you have carved out a place that belongs to you."
+    $ camila.event_triggers_dict["preferred_bull"] = True
+    call advance_time() from _call_advance_camila_preferred_bull
     return

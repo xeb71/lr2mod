@@ -1076,15 +1076,16 @@ label girlfriend_underwear_shopping_label(the_person):
     return
 
 label girlfriend_toy_store_label(the_person):
-    mc.name "Hey [the_person.title], want to come check out the shop with me? I'll let you pick something out."
+    mc.name "Hey [the_person.title], want to have a look around the shop with me? I'll let you pick something out."
     if the_person.sluttiness < 40:
         the_person "Your shop? You mean... that kind of shop?"
         mc.name "The very same. It'll be fun, I promise."
         the_person "Okay... I guess."
     else:
         the_person "The sex shop? I've been wanting to have a look around in there!"
-        mc.name "Then let's go."
-    "You walk with [the_person.possessive_title] over to the sex toy shop."
+        mc.name "Then let's take a look."
+    "The two of you browse Starbuck's shelves together."
+    $ old_location = mc.location
     $ clear_scene()
     $ the_person.change_location(sex_store)
     $ mc.change_location(sex_store)
@@ -1122,7 +1123,8 @@ label girlfriend_toy_store_label(the_person):
         "You spend a little more time browsing before heading out."
     $ mc.change_locked_clarity(10)
     $ the_person.change_location(the_person.get_destination() or the_person.home)
-    $ mc.change_location(mc.get_destination() or mc.home)
+    $ mc.change_location(old_location)
+    $ old_location = None
     $ clear_scene()
     call advance_time() from _call_advance_girlfriend_toy_store_01
     return

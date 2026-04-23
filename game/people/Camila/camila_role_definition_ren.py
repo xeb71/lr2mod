@@ -23,16 +23,19 @@ def camila_get_a_drink_requirement(person: Person):
     return False
 
 def camila_go_dancing_requirement(person: Person):
-    return False
-    if person.is_at(downtown_bar) and person.event_triggers_dict.get("bathroom_sex", False):
-        return True
-    return False
+    return person.is_at(downtown_bar) and person.event_triggers_dict.get("go_dancing", False)
 
 def camila_take_pics_requirement(person: Person):
-    return person.is_at(downtown_bar) and person.days_since_event("camila_blowjob_pic_day") > 0
+    return (
+        person.is_at(downtown_bar)
+        and person.days_since_event("camila_blowjob_pic_day") > 0
+        and person.event_triggers_dict.get("love_path", None) != "leave_husband"
+    )
 
 def camila_home_sex_requirement(person: Person):
     if not person.event_triggers_dict.get("home_sex", False):
+        return False
+    if person.event_triggers_dict.get("love_path", None) == "leave_husband":
         return False
     if not person.is_home:
         return "Only at her house"

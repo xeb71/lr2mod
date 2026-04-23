@@ -61,6 +61,14 @@ label fuck_person(the_person, private= True, start_position = None, start_object
         call cheating_at_home_room_choice(the_person) from _call_cheating_at_home_room_choice
         $ condition = make_cheating_at_home_condition(_return)
 
+    if (private
+            and is_fixed_watcher
+            and isinstance(start_position, Position)
+            and the_person.is_queen
+            and the_watcher
+            and the_watcher.harem_queen == the_person):
+        call watcher_check(the_person, start_position, start_object, report_log, fixed_watcher = the_watcher) from _call_watcher_check_initial_fixed_watcher
+
     # We start any encounter by letting them pick what position they want (unless something is forced or the girl is in charge)
     while not finished:
         if girl_in_charge:
@@ -1590,11 +1598,8 @@ label describe_girl_climax(the_person, the_position, the_object, private, report
                 _PT + " lets out a breathless moan as a powerful squirt erupts from her, her bare thighs slick with wetness." \
                 ])
         else:
-            # Increase clothing wetness when she has clothes on.
-            if the_person.outfit is not None:
-                python:
-                    for _item in the_person.outfit.upper_body + the_person.outfit.lower_body:
-                        _item.wetness = min(getattr(_item, 'wetness', 0) + 1, 3)
+            # Increase girl wetness so all worn clothes inherit it for 2 turns.
+            $ the_person.wetness = min(getattr(the_person, "wetness", 0) + 2, 3)
             $ _squirt_desc = renpy.random.choice([ \
                 _PT + " shudders violently as a gush of wetness sprays from between her legs, soaking her clothes.", \
                 "A wet splash escapes " + _pt + " as her body convulses, leaving a visible damp patch spreading across her outfit.", \

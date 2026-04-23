@@ -1,6 +1,8 @@
 # Contains all of the information/events for girls who are on instapic.
 # Girls are given this role if they have an account.
 
+define INSTA_PHOTO_ALBUM_BOX_XALIGN = 0.42
+
 label check_insta():
     # TODO: Check if anyone you know has posted pictures on InstaPic
     # TODO: Ability to find new Insta girls who are posting revealing pics.
@@ -625,10 +627,12 @@ label dm_option_ass_response(the_person):
     return
 
 label dm_view_old_photos(the_person):
-    call screen main_choice_display(build_menu_items(build_dm_photos_menu(the_person)))
+    call screen main_choice_display(build_menu_items(build_dm_photos_menu(the_person)), box_xalign = INSTA_PHOTO_ALBUM_BOX_XALIGN)
     if isinstance(_return, dict):
         call dm_replay_photo(the_person, _return) from _call_dm_replay_photo
         call dm_view_old_photos(the_person) from _call_dm_view_old_photos_loop
+    else:
+        $ clear_scene()
     return
 
 label dm_replay_photo(the_person, photo_entry, is_new = False):
@@ -738,8 +742,6 @@ label dm_replay_photo(the_person, photo_entry, is_new = False):
         $ the_person.apply_planned_outfit()
     if _saved_mc_response:
         "Your response was: [_saved_mc_response]"
-    if not is_new:
-        $ clear_scene()
     return
 
 #TODO: Implement this at some point. For now it's more complexity than we need.

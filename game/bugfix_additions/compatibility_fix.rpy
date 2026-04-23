@@ -122,6 +122,8 @@ init -5 python:
         # and re-importing them triggers top-level code (e.g. "from renpy
         # import str") that only works during Ren'Py init.  All names defined
         # in _ren.py files are already available as store globals.
+        if "TOY_SWITCH_OFF_CHANCE_MULTIPLIER" not in globals():
+            globals()["TOY_SWITCH_OFF_CHANCE_MULTIPLIER"] = 2
 
         if not sarah.has_event_day("day_met") and day >= TIER_1_TIME_DELAY:
             sarah.set_event_day("day_met", TIER_1_TIME_DELAY)
@@ -267,6 +269,36 @@ init -5 python:
             d for d in mc.business.toy_designs
             if len(getattr(d, 'attributes', [])) > 0
         ]
+        from game.major_game_classes.business_related.ToyDesign_ren import normalize_toy_lubricant_traits
+        for _design in mc.business.toy_designs:
+            if not hasattr(_design, 'lubricant_traits'):
+                _old_lubricants = getattr(_design, 'lubricant_serums', [])
+                _max_lube_traits = max(
+                    len(_old_lubricants),
+                    sum(
+                        getattr(_attr, 'lubricant_trait_add', getattr(_attr, 'lubricant_serum_add', 0))
+                        for _attr in getattr(mc.business, 'toy_attributes', [])
+                        if getattr(_attr, 'researched', False)
+                    )
+                )
+                _converted_traits = []
+                _converted_trait_set = set()
+                for _serum in _old_lubricants:
+                    if len(_converted_traits) >= _max_lube_traits:
+                        break
+                    for _trait in getattr(_serum, 'traits', []):
+                        if len(_converted_traits) >= _max_lube_traits:
+                            break
+                        if "Production" in getattr(_trait, 'exclude_tags', []) or _trait in _converted_trait_set:
+                            continue
+                        _converted_traits.append(_trait)
+                        _converted_trait_set.add(_trait)
+                _design.lubricant_traits = _converted_traits
+            _design.lubricant_traits = normalize_toy_lubricant_traits(getattr(_design, 'lubricant_traits', []))
+            if not hasattr(_design, 'lubricant_duration'):
+                _design.lubricant_duration = 0
+            if _design.lubricant_duration <= 0:
+                _design.lubricant_duration = mc.business.lubricant_duration
         if not hasattr(mc.business, 'active_toy_research'):
             mc.business.active_toy_research = None
         if not hasattr(mc.business, 'toy_attributes'):
@@ -594,16 +626,55 @@ init -5 python:
         for _attr in mc.business.toy_attributes:
             if not hasattr(_attr, 'module_space_add'):
                 _attr.module_space_add = 0
+            if not hasattr(_attr, 'design_component'):
+                _attr.design_component = True
+            # Backward compatibility: earlier saves stored lubricant progression
+            # as serum slots, before lubricant formulas were changed to trait slots.
+            if not hasattr(_attr, 'lubricant_trait_add'):
+                _attr.lubricant_trait_add = getattr(_attr, 'lubricant_serum_add', 0)
+            if not hasattr(_attr, 'lubricant_duration_add'):
+                _attr.lubricant_duration_add = getattr(_attr, 'lubricant_serum_add', 0)
+            if _attr.name == "Extension Module":
+                _attr.module_space_add = 3
+                _attr.desc = "A modular chassis expansion that uses one component slot and grants three extra module slots. Requires a robust casing to support the extra hardware."
 
         if "Extension Module" not in _existing_attr_names:
             _req_robust = next((_a for _a in mc.business.toy_attributes if _a.name == "Extra Robust"), None)
             _new_ext = ToyAttribute("Extension Module",
-                "A modular chassis expansion that adds two additional component slots at the cost of one. Requires a robust casing to support the extra hardware.",
+                "A modular chassis expansion that uses one component slot and grants three extra module slots. Requires a robust casing to support the extra hardware.",
                 research_needed=350, requires=_req_robust if _req_robust else [],
                 production_cost_add=3, value_add=12, power_add=-1, arousal_rating_add=0,
-                module_space_add=2)
+                module_space_add=3)
             mc.business.toy_attributes.append(_new_ext)
             _existing_attr_names.add("Extension Module")
+
+        if "Lubricant Infusion I" not in _existing_attr_names:
+            _new_li1 = ToyAttribute("Lubricant Infusion I",
+                "Develop a stable lubricant base that can carry one serum trait for 2 turns of topical delivery.",
+                research_needed=200, production_cost_add=0, value_add=0, power_add=0,
+                design_component=False, lubricant_trait_add=1, lubricant_duration_add=1)
+            mc.business.toy_attributes.append(_new_li1)
+            _existing_attr_names.add("Lubricant Infusion I")
+
+        if "Lubricant Infusion II" not in _existing_attr_names:
+            _req_li1 = next((_a for _a in mc.business.toy_attributes if _a.name == "Lubricant Infusion I"), None)
+            _new_li2 = ToyAttribute("Lubricant Infusion II",
+                "Improve the carrier blend so custom lubricant formulas can carry a second serum trait and last 3 turns.",
+                research_needed=450, requires=_req_li1,
+                production_cost_add=0, value_add=0, power_add=0,
+                design_component=False, lubricant_trait_add=1, lubricant_duration_add=1)
+            mc.business.toy_attributes.append(_new_li2)
+            _existing_attr_names.add("Lubricant Infusion II")
+
+        if "Lubricant Infusion III" not in _existing_attr_names:
+            _req_li2 = next((_a for _a in mc.business.toy_attributes if _a.name == "Lubricant Infusion II"), None)
+            _new_li3 = ToyAttribute("Lubricant Infusion III",
+                "Perfect the suspension matrix to support a third serum trait while extending lubricant duration to 4 turns.",
+                research_needed=800, requires=_req_li2,
+                production_cost_add=0, value_add=0, power_add=0,
+                design_component=False, lubricant_trait_add=1, lubricant_duration_add=1)
+            mc.business.toy_attributes.append(_new_li3)
+            _existing_attr_names.add("Lubricant Infusion III")
 
         # Add any newly introduced blueprints that are missing from existing saves.
         _existing_bp_names = {_bp.name for _bp in mc.business.toy_blueprints}
@@ -684,6 +755,16 @@ init -5 python:
         _sex_store = globals().get("sex_store", None)
         if _sex_store is not None:
             _sex_store.actions = ActionList(sex_store_actions())
+
+        # Refresh CEO Office base actions so old saves pick up newly added or
+        # updated management actions like Weekend Serum Doses, while keeping
+        # any extra actions added at runtime by policies or story content.
+        _ceo_office = globals().get("ceo_office", None)
+        if _ceo_office is not None:
+            _base_ceo_actions = ceo_office_actions()
+            _base_ceo_effects = {getattr(x, "effect", None) for x in _base_ceo_actions}
+            _extra_ceo_actions = [x for x in _ceo_office.actions if getattr(x, "effect", None) not in _base_ceo_effects]
+            _ceo_office.actions = ActionList(_base_ceo_actions + _extra_ceo_actions)
 
         # Backfill reply field for InstaPic photo history entries that predate the reply feature.
         # Entries created before the reply was introduced lack the "reply" key.
@@ -918,6 +999,11 @@ label check_save_version(stack):
     $ execute_hijack_call(stack)
     return
 
-label missing_label_called(arg1 = None, Arg2 = None):
+label missing_label_called(*label_args, **label_kwargs):
+    python:
+        write_log(
+            f"WARNING: Missing label called: {missing_label_name}, "
+            f"arg_count={len(label_args)}, kwarg_keys={sorted(label_kwargs.keys())}"
+        )
     "System" "Something went wrong, the game called label '[missing_label_name]', but this label does not exist."
     return

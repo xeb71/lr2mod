@@ -1,7 +1,7 @@
 from __future__ import annotations
 from game.business_policies.clothing_policies_ren import strict_uniform_policy
 from game.business_policies.organisation_policies_ren import public_advertising_license_policy
-from game.business_policies.serum_policies_ren import daily_serum_dosage_policy
+from game.business_policies.serum_policies_ren import daily_serum_dosage_policy, weekend_serum_dosage_policy
 from game.business_policies.special_policies_ren import personal_secretary_creation_policy, production_assistant_creation_policy, it_director_creation_policy
 from game.major_game_classes.game_logic.Action_ren import Action
 from game.major_game_classes.character_related.Person_ren import Person, mc
@@ -39,6 +39,13 @@ def set_serum_requirement():
     if daily_serum_dosage_policy.is_owned and not daily_serum_dosage_policy.is_active:
         return "Policy not active"
     return daily_serum_dosage_policy.is_active
+
+def set_weekend_serum_requirement():
+    if not weekend_serum_dosage_policy.is_owned:
+        return "Policy not purchased"
+    if weekend_serum_dosage_policy.is_owned and not weekend_serum_dosage_policy.is_active:
+        return "Policy not active"
+    return weekend_serum_dosage_policy.is_active
 
 def head_researcher_select_requirement():
     if isinstance(mc.business.head_researcher, Person):
@@ -98,9 +105,10 @@ def ceo_office_actions() -> list[Action]:
 
     ##Actions unlocked by policies##
     set_serum_action = Action("{image=vial_token_small} Set Daily Serum Doses", set_serum_requirement, "set_serum_description")
+    set_weekend_serum_action = Action("{image=vial_token_small} Set Weekend Serum Doses", set_weekend_serum_requirement, "set_weekend_serum_description")
     set_uniform_action = Action("{image=underwear_token_small} Manage Employee Uniforms", set_uniform_requirement, "uniform_manager_loop")
 
-    return [manage_contracts, policy_purchase_action, set_uniform_action, set_serum_action, set_head_researcher_action, set_personal_secretary_action, set_it_director_action, set_production_assistant_action, interview_action]
+    return [manage_contracts, policy_purchase_action, set_uniform_action, set_serum_action, set_weekend_serum_action, set_head_researcher_action, set_personal_secretary_action, set_it_director_action, set_production_assistant_action, interview_action]
 
 
 def sell_serum_action_requirement():

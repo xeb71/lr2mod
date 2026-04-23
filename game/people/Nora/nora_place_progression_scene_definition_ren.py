@@ -123,35 +123,35 @@ def nora_place_prog_scene_choose_action():
 def nora_place_prog_scene_0_popup_text():
     if mc.sex_skills["Oral"] >= 6 and (mc.max_energy >= 160 or perk_system.has_ability_perk("Serum: Feat of Orgasm Control")) and nora.effective_sluttiness() >= 60:
         return "Full Scene"
-    popup_text = "Partial Scene:"
+    popup_text = ["Partial Scene:"]
     if mc.sex_skills["Oral"] < 6:
-        popup_text.append("\n  Oral Skill 6+")
+        popup_text.append("Oral Skill 6+")
     if mc.max_energy < 160:
-        popup_text.append("\n  Max Energy 160+")
+        popup_text.append("Max Energy 160+")
     if nora.effective_sluttiness() < 60:
-        popup_text.append("\n  Nora Sluttiness +60")
-    return popup_text
+        popup_text.append("Nora Sluttiness +60")
+    return "\n  ".join(popup_text)
 
 def nora_place_prog_scene_1_popup_text():
     if mc.sex_skills["Oral"] >= 6 and (mc.max_energy >= 170 or perk_system.has_ability_perk("Serum: Feat of Orgasm Control")) and mc.sex_skills["Foreplay"] >= 6 and mc.sex_skills["Vaginal"] >= 6:
         return "Full Scene"
-    popup_text = "Partial Scene:"
+    popup_text = ["Partial Scene:"]
     if mc.sex_skills["Foreplay"] < 6:
-        popup_text.append("\n  Foreplay Skill 6+")
+        popup_text.append("Foreplay Skill 6+")
     if mc.sex_skills["Oral"] < 6:
-        popup_text.append("\n  Oral Skill 6+")
+        popup_text.append("Oral Skill 6+")
     if mc.sex_skills["Vaginal"] < 6:
-        popup_text.append("\n  Vaginal Skill 6+")
+        popup_text.append("Vaginal Skill 6+")
     if mc.max_energy < 170:
-        popup_text.append("\n  Max Energy 170+")
-    return popup_text
+        popup_text.append("Max Energy 170+")
+    return "\n  ".join(popup_text)
 
 def nora_place_prog_scene_2_popup_text():
     if mc.sex_skills["Vaginal"] >= 6 and (mc.max_energy >= 180 or perk_system.has_ability_perk("Serum: Feat of Orgasm Control")):
         return "Full Scene"
-    popup_text = "Partial Scene:"
+    popup_text = ["Partial Scene:"]
     if mc.sex_skills["Vaginal"] < 6:
-        popup_text.append("\n  Vaginal Skill 6+")
-    if mc.max_energy < 170:
-        popup_text.append("\n  Max Energy 180+")
-    return popup_text
+        popup_text.append("Vaginal Skill 6+")
+    if mc.max_energy < 180:
+        popup_text.append("Max Energy 180+")
+    return "\n  ".join(popup_text)

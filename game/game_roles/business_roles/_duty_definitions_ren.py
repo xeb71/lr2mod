@@ -211,34 +211,39 @@ def daily_serum_dosage_duty_on_move(person: Person):
     if not person.is_at_work:
         return #Don't give it to them if they aren't at work.
 
-    give_daily_serum_dosage(person)
+    give_serum_dosage(person)
 
-def give_daily_serum_dosage(person: Person):
+def get_department_serum(person: Person, serum_type = "daily"):
+    serum_suffix = "_weekend_serum" if serum_type == "weekend" else "_serum"
     serum = None
     if person in chain(mc.business.research_team, mc.business.college_interns_research):
-        serum = mc.business.r_serum
+        serum = getattr(mc.business, "r" + serum_suffix, None)
     elif person in chain(mc.business.market_team, mc.business.college_interns_market):
-        serum = mc.business.m_serum
+        serum = getattr(mc.business, "m" + serum_suffix, None)
     elif person in chain(mc.business.production_team, mc.business.college_interns_production):
-        serum = mc.business.p_serum
+        serum = getattr(mc.business, "p" + serum_suffix, None)
     elif person in chain(mc.business.supply_team, mc.business.college_interns_supply):
-        serum = mc.business.s_serum
+        serum = getattr(mc.business, "s" + serum_suffix, None)
     elif person in chain(mc.business.hr_team, mc.business.college_interns_HR):
-        serum = mc.business.h_serum
+        serum = getattr(mc.business, "h" + serum_suffix, None)
     elif person in mc.business.engineering_team:
-        serum = getattr(mc.business, 'e_serum', None)
+        serum = getattr(mc.business, "e" + serum_suffix, None)
     elif mc.owns_strip_club:
         if person in mc.business.stripclub_strippers:
-            serum = mc.business.strippers_serum
+            serum = getattr(mc.business, "strippers" + serum_suffix, None)
         elif person in mc.business.stripclub_waitresses:
-            serum = mc.business.waitresses_serum
+            serum = getattr(mc.business, "waitresses" + serum_suffix, None)
         elif person in mc.business.stripclub_bdsm_performers:
-            serum = mc.business.bdsm_performers_serum
+            serum = getattr(mc.business, "bdsm_performers" + serum_suffix, None)
         elif person.has_job((stripclub_manager_job, stripclub_mistress_job)):
-            serum = mc.business.manager_serum
+            serum = getattr(mc.business, "manager" + serum_suffix, None)
+    return serum
+
+def give_serum_dosage(person: Person, serum_type = "daily"):
+    serum = get_department_serum(person, serum_type)
 
     if serum is not None:
-        person.event_triggers_dict["daily_serum_distributed"] = True
+        person.event_triggers_dict[f"{serum_type}_serum_distributed"] = True
         should_give_serum = True
         for active_serum in person.serum_effects:
             if serum.is_same_design(active_serum):
@@ -255,18 +260,19 @@ def give_daily_serum_dosage(person: Person):
 
 def daily_serum_dosage_duty_on_day(person: Person):
     person.event_triggers_dict["daily_serum_distributed"] = False
+    person.event_triggers_dict["weekend_serum_distributed"] = False
 
 def weekend_serum_dosage_duty_on_move(person: Person):
     if not weekend_serum_dosage_policy.is_active:
         return # only execute when policy is active
 
-    if person.event_triggers_dict.get("daily_serum_distributed", False):
+    if person.event_triggers_dict.get("weekend_serum_distributed", False):
         return #Give it to them first thing in the morning, but only once
 
     if not mc.business.is_weekend:
         return #Don't give it to them on work days.
 
-    give_daily_serum_dosage(person)
+    give_serum_dosage(person, serum_type = "weekend")
 
 def bureaucratic_nightmare_duty_requirement(person: Person):
     return bureaucratic_nightmare.is_active
@@ -490,7 +496,7 @@ def init_duty_lists():
         on_day_function = daily_serum_dosage_duty_on_day)
     global weekend_serum_dosage_duty
     weekend_serum_dosage_duty = Duty("Weekend Serum Dose",
-        "Receive a dose of serum from management at the start of every weekend, unless a previous dose will last the weekend. Serum type can be varied by department and set from the CEO office (daily serum dose).",
+        "Receive a dose of serum from management at the start of every weekend, unless a previous dose will last the weekend. Serum type can be varied by department and set from the CEO office.",
         requirement_function = weekend_serum_dosage_duty_requirement,
         on_move_function = weekend_serum_dosage_duty_on_move, #NOTE: A flag makes sure this is only triggered once per day.
         on_day_function = daily_serum_dosage_duty_on_day,

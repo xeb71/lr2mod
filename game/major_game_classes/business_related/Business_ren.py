@@ -93,11 +93,21 @@ class Business():
         self.s_serum = None
         self.h_serum = None
         self.e_serum = None
+        self.m_weekend_serum = None
+        self.p_weekend_serum = None
+        self.r_weekend_serum = None
+        self.s_weekend_serum = None
+        self.h_weekend_serum = None
+        self.e_weekend_serum = None
 
         self.strippers_serum = None
         self.waitresses_serum = None
         self.bdsm_performers_serum = None
         self.manager_serum = None
+        self.strippers_weekend_serum = None
+        self.waitresses_weekend_serum = None
+        self.bdsm_performers_weekend_serum = None
+        self.manager_weekend_serum = None
 
         self.max_employee_count = 8
 
@@ -940,6 +950,24 @@ class Business():
         client_log.append(["Anonymous", toy_name, day])
         self.toy_client_log = client_log
         return sale_value
+
+    @property
+    def lubricant_trait_capacity(self) -> int:
+        """How many serum traits are unlocked for custom lubricant formulas."""
+        return sum(
+            getattr(attr, 'lubricant_trait_add', 0)
+            for attr in getattr(self, 'toy_attributes', [])
+            if getattr(attr, 'researched', False)
+        )
+
+    @property
+    def lubricant_duration(self) -> int:
+        """How many turns a custom lubricant formula lasts."""
+        return 1 + sum(
+            getattr(attr, 'lubricant_duration_add', 0)
+            for attr in getattr(self, 'toy_attributes', [])
+            if getattr(attr, 'researched', False)
+        )
 
     def toy_attribute_progress(self, intel: int, focus: int, production_modifier = 1.0) -> float:
         """Advance research on the active toy attribute. Uses intelligence and focus."""

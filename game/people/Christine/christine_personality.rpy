@@ -181,8 +181,12 @@ label police_chief_public_sex_intervention(the_person):
     $ scene_manager.add_actor(police_chief)
     $ scene_manager.add_actor(the_person, position = "sitting", display_transform = character_left_flipped)
     "You and [the_person.title] are escorted to the police station by the police officer. You spend a couple hours doing paperwork."
-    call mc_arrested_penalties() from _arrested_public_sex_01
-    "You and [the_person.possessive_title] go your separate ways for now. She doesn't seem eager to chat about getting arrested."
+    call mc_arrested_penalties(the_person) from _arrested_public_sex_01
+    if _return == "alternative":
+        "By the time [police_chief.title] finally lets you and [the_person.title] go, none of the paperwork in front of her seems very important anymore."
+        "You and [the_person.possessive_title] leave the station together, still a little stunned by how your arrest ended."
+    else:
+        "You and [the_person.possessive_title] go your separate ways for now. She doesn't seem eager to chat about getting arrested."
     call advance_time() from _call_advance_time_after_arrested_1
     jump game_loop
     return

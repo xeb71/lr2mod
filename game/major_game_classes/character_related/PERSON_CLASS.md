@@ -231,7 +231,7 @@ All set in `__init__` (lines 785–1034).
 |---|---|---|
 | `_location` | `int \| None` | Room identifier for current location |
 | `_home` | `int \| None` | Room identifier for home |
-| `_follow_mc` | `bool` | Whether she follows the MC |
+| `_follow_mc` | `bool` | Whether she is currently following the MC |
 | `schedule` | `Schedule` | Regular weekly schedule |
 | `override_schedule` | `Schedule` | Mandatory schedule (overrides regular) |
 
@@ -484,7 +484,8 @@ Each pair returns the floor/ceiling for a given stat in initial or final form:
 | `change_to_bedroom()` | — | Move to her bedroom |
 | `change_to_hallway()` | — | Move to her hallway |
 | `can_clone` *(property)* | `bool` | Eligible to be cloned |
-| `follow_mc` *(property + setter)* | `bool` | Whether she follows MC's location |
+| `follow_mc` *(property + setter)* | `bool` | Whether she follows MC within the current hub |
+| `follow_mc_everywhere` *(property + setter)* | `bool` | Whether she follows MC across all hubs |
 | `body_images` *(property)* | `Clothing` | Body-layer Clothing sprite |
 | `tan_images` *(property)* | `Clothing` | Tan-layer Clothing sprite |
 | `expression_images` *(property)* | `Clothing` | Expression-layer Clothing sprite |

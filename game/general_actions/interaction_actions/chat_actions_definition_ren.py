@@ -442,6 +442,8 @@ def build_special_role_actions_list(person: Person, keep_talking = True):
             special_role_actions.append((act, person))
 
     for act in mc.main_character_actions: #The main character has a "role" that lets us add special actions as well.
+        if getattr(act, "effect", None) == "mc_start_follow_now_label":
+            continue
         if keep_talking or act.is_fast:
             special_role_actions.append((act, person))
 
@@ -451,7 +453,12 @@ def build_special_role_actions_list(person: Person, keep_talking = True):
 
 def build_command_action_list(person, keep_talking = True):
     command_actions_list = ["Never mind"]
-    for act in command_actions:
+    available_command_actions = list(command_actions)
+    follow_now_action = globals().get("mc_start_follow_now_action")
+    if follow_now_action and follow_now_action not in available_command_actions:
+        available_command_actions.append(follow_now_action)
+
+    for act in available_command_actions:
         if keep_talking or act.is_fast:
             command_actions_list.append((act, person))
     command_actions_list.sort(key = sort_display_list, reverse = True)

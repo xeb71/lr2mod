@@ -2,20 +2,26 @@
 # to be put in \game\Mods\Screens\Serum_Screens\
 
 init 2 python:
-    def get_division_serum_name(division):
-        serum = get_division_serum(division)
+    def division_serum_attribute(attribute, serum_type = "daily"):
+        if serum_type == "weekend":
+            return attribute.removesuffix("_serum") + "_weekend_serum"
+        return attribute
+
+    def get_division_serum_name(division, serum_type = "daily"):
+        serum = get_division_serum(division, serum_type)
         if serum:
             return serum.name
         else:
             return "No serum"
 
-    def get_division_serum(division):
-        if not hasattr(division[1], division[2]):
-            setattr( division[1], division[2], None);
-        return getattr(division[1], division[2])
+    def get_division_serum(division, serum_type = "daily"):
+        attribute = division_serum_attribute(division[2], serum_type)
+        if not hasattr(division[1], attribute):
+            setattr(division[1], attribute, None)
+        return getattr(division[1], attribute)
 
-    def set_division_serum(division, serum):
-        setattr( division[1], division[2], serum)
+    def set_division_serum(division, serum, serum_type = "daily"):
+        setattr(division[1], division_serum_attribute(division[2], serum_type), serum)
 
     def get_division_serum_mapping():
         mapping = [
@@ -36,11 +42,13 @@ init 2 python:
         return mapping
 
 init 2:
-    screen assign_division_serum():
+    screen assign_division_serum(serum_type = "daily"):
         add science_menu_background_image
 
         default division_selected = -1
         default division_serums = get_division_serum_mapping()
+        default serum_dose_label = "Daily" if serum_type == "daily" else "Weekend"
+        default serum_duty_label = "Daily Serum Doses" if serum_type == "daily" else "Weekend Serum Doses"
 
         vbox:
             xalign 0.5
@@ -52,7 +60,7 @@ init 2:
                 background "#1a45a1aa"
                 xsize 1860
                 ysize 60
-                text "Assign Daily Serum Dose" xalign 0.5 xanchor 0.5 yalign 0.5 yanchor 0.5 size 36 style "menu_text_title_style"
+                text "Assign [serum_dose_label] Serum Dose" xalign 0.5 xanchor 0.5 yalign 0.5 yanchor 0.5 size 36 style "menu_text_title_style"
 
             hbox:
                 vbox:
@@ -81,7 +89,7 @@ init 2:
                                     vbox:
                                         for division in builtins.range(0,builtins.len(division_serums)):
                                             $ division_name = division_serums[division][0]
-                                            $ serum_name = get_division_serum_name(division_serums[division])
+                                            $ serum_name = get_division_serum_name(division_serums[division], serum_type)
                                             button:
                                                 vbox:
                                                     xalign 0.5
@@ -128,13 +136,13 @@ init 2:
                                                 text "No serum" style "serum_text_style"
                                                 style "textbutton_style"
                                                 sensitive True
-                                                if get_division_serum(division_serums[division_selected]) is None:
+                                                if get_division_serum(division_serums[division_selected], serum_type) is None:
                                                     background "#000080"
                                                     hover_background "#0030A0"
                                                 else:
                                                     background "#222222"
                                                     hover_background "#333333"
-                                                action Function(set_division_serum, division_serums[division_selected], None)
+                                                action Function(set_division_serum, division_serums[division_selected], None, serum_type)
 
                                             for design, dose_count in sorted(mc.business.inventory.serums_held, key = lambda e: e[0].name):
                                                 button:
@@ -150,7 +158,7 @@ init 2:
                                                             text "Available: [dose_count]" style "serum_text_style" size 16
                                                     style "textbutton_style"
                                                     sensitive True
-                                                    if get_division_serum(division_serums[division_selected]) == design:
+                                                    if get_division_serum(division_serums[division_selected], serum_type) == design:
                                                         background "#000080"
                                                         hover_background "#0030A0"
                                                     else:
@@ -162,7 +170,7 @@ init 2:
                                                     unhovered [
                                                         Hide("serum_tooltip")
                                                     ]
-                                                    action Function(set_division_serum, division_serums[division_selected], design)
+                                                    action Function(set_division_serum, division_serums[division_selected], design, serum_type)
 
             frame:
                 background None
@@ -178,4 +186,4 @@ init 2:
         frame:
             pos (1300, 940)
             xysize (550, 80)
-            text "Note that daily serums will only be given to people with the 'Daily Serum Doses' duty assigned." style "serum_text_style" size 22
+            text "Note that [serum_dose_label] serums will only be given to people with the '[serum_duty_label]' duty assigned." style "serum_text_style" size 22

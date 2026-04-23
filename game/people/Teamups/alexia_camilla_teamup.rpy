@@ -66,6 +66,7 @@ label camila_alexia_boudoir_final_setup_label(the_person):
     the_person "See you there!"
     $ clear_scene()
     "Alright! You've got the time and place set for a sexy photoshoot!"
+    $ camila.event_triggers_dict["boudoir_scheduled"] = True
     $ mc.business.add_mandatory_crisis(camila_alexia_boudoir_intro)
     return
 
@@ -81,9 +82,46 @@ label camila_alexia_boudoir_intro_label():
     $ scene_manager.add_actor(alexia)
     alexia "Knock knock! Hey [alexia.mc_title]."
     "In her hands she has the company camera."
-    mc.name "Come in! Come on in, I'm sure "
-
-
+    mc.name "Come in! Thanks for staying late for this."
+    alexia "No problem. Honestly, I'm kind of curious about your mystery married model."
+    "A second knock comes a minute later."
+    $ scene_manager.add_actor(camila, display_transform = character_center_flipped, position = "stand4")
+    camila "Hola... I hope I'm not late."
+    mc.name "Perfect timing."
+    "Camila steps fully into the office wearing a lingerie set under a light summer wrap. Alexia gives her a quick once-over, but the smile she offers is warm instead of competitive."
+    alexia "You must be Camila. I'm Alexia. Don't worry, we've all had a first shoot."
+    camila "That obvious, huh?"
+    alexia "Only because you're doing the same thing I did. You're thinking about how you look instead of how the camera sees you."
+    $ scene_manager.update_actor(alexia, position = "stand2")
+    "[alexia.title] steps close and gently adjusts the drape of [camila.possessive_title]'s wrap, then tips her chin up."
+    alexia "There. Long neck, shoulders back, let your hips do the work."
+    $ scene_manager.update_actor(camila, position = "back_peek")
+    "Camila follows the directions. The nervousness is still there, but now it mixes with excitement."
+    mc.name "That's it. Hold that."
+    "You take a run of pictures while Alexia keeps offering quiet pointers."
+    alexia "Now give him a look like you know exactly what you're doing to him."
+    $ scene_manager.update_actor(camila, position = "kissing")
+    "Camila laughs, then surprises both of you by nailing the expression on the next try."
+    camila "Like this?"
+    mc.name "Exactly like that."
+    $ mc.change_locked_clarity(30)
+    "A few outfit adjustments later, Camila lets the wrap slide down enough to bare one breast, then eventually both."
+    $ scene_manager.strip_to_tits(camila)
+    camila "Okay... wow. This is a lot less terrifying with another woman here."
+    alexia "Told you. You're not hiding from the camera. You're making it chase you."
+    "The confidence in Camila's posture changes the whole room. By the end of the session she is arching for the lens on instinct, and Alexia is grinning like a coach watching a rookie finally trust her body."
+    $ scene_manager.update_actor(camila, position = "stand4", emotion = "happy")
+    camila "I actually had fun."
+    alexia "You did more than have fun. You looked incredible."
+    mc.name "The shots came out great too."
+    camila "Then maybe we do this again sometime. Maybe with less panic next time."
+    alexia "I'd be into that."
+    "The two women share an easy smile. For the first time, Camila's modelling idea feels like something real instead of a secret fantasy."
+    python:
+        camila.event_triggers_dict["boudoir_stage"] = 1
+        camila.event_triggers_dict["boudoir_scheduled"] = False
+        scene_manager.clear_scene()
+        mc.change_location(downtown)
     return
 
 

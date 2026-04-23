@@ -34,16 +34,35 @@ label camila_obedience_new_goals_label(the_person):    #100 obedience
 
 label camila_obedience_new_personal_goals_label(the_person):    #120 Obedience
     $ the_person.story_event_log("obedience")
-    "In this label, we convince Camila to help us come up with new personal goals."
-    "She walks MC through the process, encourages him to learn what he wants to do with his life and what he wants to accomplish."
+    $ the_person.draw_person()
+    "You stop by [the_person.possessive_title]'s stall and she immediately closes the tablet she has been working on."
+    the_person "There you are. I've been thinking about what comes after business goals."
+    mc.name "There is an after?"
+    the_person "Of course. A company can only reflect the person leading it for so long before the cracks start to show."
+    "She talks you through a list of questions that have nothing to do with profits and everything to do with who you want to become."
+    the_person "What kind of life are you building? What parts of it are only for show, and what parts actually matter to you?"
+    mc.name "You really don't do shallow pep talks, do you?"
+    the_person "Not if I can help it."
+    "By the end of the conversation, the exercise feels less like coaching and more like [the_person.title] quietly pulling your real priorities out into the open."
 
+    $ camila.event_triggers_dict["personal_goal_coach"] = True
     $ add_camila_obedience_sexual_goals_intro_action()
     $ camila.progress.obedience_step = 2
     return
 
 
 label camila_obedience_sexual_goals_intro_label(the_person):   #140 obedience
-    "In this label, Camila works with MC to come up with new sexual goals. This level of sexual goals a will be fairly tame."
+    $ the_person.draw_person()
+    "When you arrive, [the_person.possessive_title] is already smiling like she knows exactly where today's conversation is going."
+    the_person "So. Last time we talked about what drives you."
+    the_person "Today I want to ask a more dangerous question."
+    mc.name "Dangerous how?"
+    the_person "Honest dangerous."
+    "She leans in a little closer, voice dropping just enough to make the moment feel conspiratorial."
+    the_person "When you stop pretending to be a gentleman for a second, what do you actually want from women?"
+    "The answer comes to you embarrassingly fast, and the look in her eyes says she notices."
+    the_person "Good. Don't flinch from it."
+    the_person "A goal you are ashamed to name will always control you more than a goal you can own."
     $ add_camila_obedience_tit_fuck_action()
     $ camila.progress.obedience_step = 3
     return
@@ -147,5 +166,7 @@ label camila_obedience_ass_man_label(the_person):  #180 obedience
     $ clear_scene()
     $ the_person.apply_planned_outfit()
     call mc_restore_original_location(the_person) from _call_mc_restore_original_location_camila_obedience_ass_man
+    $ camila.event_triggers_dict["obedience_ass_man"] = True
+    $ add_camila_nora_goal_sync_action()
     $ camila.progress.obedience_step = 5
     return

@@ -82,6 +82,7 @@ def create_christine_character():
             ["taking control", 2, False],
             ["anal sex", 2, False],
             ["sex standing up", 1, False],
+            ["threesomes", 2, True],
             ["being submissive", -2, False],
             ["skimpy outfits", -2, False],
             ["showing her tits", -1, False],
@@ -89,6 +90,8 @@ def create_christine_character():
             ["not wearing underwear", -2, False]],
         serum_tolerance = 1, work_experience = 2, type = 'story')
 
+    police_chief.like_men = -5
+    police_chief.like_women = 5
     police_chief.idle_pose = "stand3"   # forced idle pose
     police_chief.generate_home()
     police_chief.home.add_person(police_chief)
@@ -105,6 +108,32 @@ def christine_story_character_description():
     return "Chief of Police that will monitor if people abide by the city laws."
 
 
+def christine_story_lust_list():
+    lust_story_list = {}
+
+    if police_chief.progress.lust_step == 0:
+        lust_story_list[0] = "Get caught having public sex with a woman willing to join [police_chief.fname] for a threesome. She may offer to waive the fine in exchange for joining in."
+    if police_chief.progress.lust_step >= 1:
+        lust_story_list[0] = "The first time [police_chief.fname] caught you with the right girl, she waived the fine and joined you both instead."
+
+    if police_chief.progress.lust_step == 1:
+        lust_story_list[1] = "Get caught again with another willing girl to see what kind of \"alternative payment\" [police_chief.fname] asks for next."
+    if police_chief.progress.lust_step >= 2:
+        lust_story_list[1] = "After a second arrest, [police_chief.fname] stopped pretending the arrangement was a one-time lapse and started looking forward to your next offense."
+
+    if police_chief.progress.lust_step == 2:
+        lust_story_list[2] = "One more public-sex arrest with a willing woman should finish corrupting [police_chief.fname]'s little side arrangement."
+    if police_chief.progress.lust_step >= 3:
+        lust_story_list[2] = "[police_chief.fname] now openly uses public-sex fines as an excuse to drag you and your partner into a threesome."
+        lust_story_list[3] = "The rest of this story is still in progress."
+
+    return lust_story_list
+
+
+def christine_story_lust_is_complete():
+    return police_chief.progress.lust_step >= 3
+
+
 def christine_story_other_list():
     other_info_list = {}
 
@@ -112,6 +141,15 @@ def christine_story_other_list():
     if city_rep.event_triggers_dict.get("discussed_topless_is_legal", False):
         other_info_list[1] = "Corrupt the police chief and [city_rep.fname] to unlock the topless and public nudity policies."
     return other_info_list
+
+
+def christine_can_offer_fine_alternative(person: Person | None):
+    return (
+        isinstance(person, Person)
+        and not person.has_taboo(["sucking_cock", "condomless_sex"])
+        and person.opinion.threesomes > -2
+        and person.effective_sluttiness() > (60 - (person.opinion.threesomes * 5))
+    )
 
 ####################
 # Position Filters #

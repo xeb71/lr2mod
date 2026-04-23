@@ -22,6 +22,25 @@ ACTIVE_LOCATIONS = frozenset([
 EXTRA_ROBUST_ATTR = "Extra Robust"
 
 
+def normalize_toy_lubricant_traits(traits = None):
+    """Return lubricant traits with the mandatory toy antidote included once."""
+    antidote_trait = None
+    try:
+        from game.major_game_classes.serum_related.serums import _serum_traits_T1_ren
+        antidote_trait = getattr(_serum_traits_T1_ren, "antidote_trait", None)
+    except Exception:
+        antidote_trait = None
+
+    normalized = []
+    seen = set()
+    for trait in ([antidote_trait] if antidote_trait is not None else []) + list(traits or []):
+        if trait is None or trait in seen:
+            continue
+        normalized.append(trait)
+        seen.add(trait)
+    return normalized
+
+
 class ToyBlueprint():
     """A node in the sex toy research tree. Must be researched before ToyDesigns using it can be manufactured."""
     def __init__(self, name: str, desc: str, research_needed: int = 50,
@@ -110,7 +129,8 @@ class ToyAttribute():
             requires: list[ToyAttribute] | ToyAttribute | None = None,
             production_cost_add: int = 2, value_add: int = 10,
             power_add: int = -1, arousal_rating_add: int = 0,
-            module_space_add: int = 0):
+            module_space_add: int = 0, design_component: bool = True,
+            lubricant_trait_add: int = 0, lubricant_duration_add: int = 0):
         self.name = name
         self.desc = desc
         self.research_needed = research_needed
@@ -129,6 +149,9 @@ class ToyAttribute():
         self.power_add = power_add  # power budget change (positive = provides power, negative = draws power)
         self.arousal_rating_add = max(-5, min(5, arousal_rating_add))  # arousal contribution when added to a design (-5 to 5)
         self.module_space_add = module_space_add  # bonus module slots granted to the design when this attribute is installed
+        self.design_component = design_component  # False for research unlocks that should not be installable on toy designs
+        self.lubricant_trait_add = max(0, lubricant_trait_add)  # additional serum traits unlocked for custom lubricant formulas
+        self.lubricant_duration_add = max(0, lubricant_duration_add)  # additional turns custom lubricant formulas last
 
         self.identifier = generate_identifier((self.name, "attribute"))
 
@@ -172,6 +195,8 @@ class ToyDesign():
         self._base_production_cost = blueprint.production_cost
         self._base_value = blueprint.base_value
         self.attributes: list[ToyAttribute] = []
+        self.lubricant_traits = normalize_toy_lubricant_traits()
+        self.lubricant_duration = 0
         self.identifier = generate_identifier((self.name, "design"))
 
     def __eq__(self, other: ToyDesign) -> bool:
@@ -212,7 +237,7 @@ class ToyDesign():
     def can_add_attribute(self, attr: ToyAttribute) -> bool:
         """Check if an attribute can be added to this design.
         Batteries (power_add > 0) are exempt from module space limits."""
-        if not attr.researched:
+        if not attr.researched or not attr.design_component:
             return False
         attrs = getattr(self, 'attributes', [])
         if attr in attrs:
@@ -221,7 +246,9 @@ class ToyDesign():
             non_battery_count = sum(1 for a in attrs if getattr(a, 'power_add', -1) <= 0)
             bp_module_space = getattr(self.blueprint, 'module_space', 2)
             added_space = sum(getattr(a, 'module_space_add', 0) for a in attrs)
-            if non_battery_count >= bp_module_space + added_space:
+            new_non_battery_count = non_battery_count + 1
+            new_total_space = bp_module_space + added_space + getattr(attr, 'module_space_add', 0)
+            if new_non_battery_count > new_total_space:
                 return False
         return True
 
@@ -239,6 +266,11 @@ class ToyDesign():
         attrs = getattr(self, 'attributes', [])
         if attr in attrs:
             attrs.remove(attr)
+
+    def set_lubricant_formula(self, traits = None, duration: int = 0):
+        """Apply the design's lubricant formula, always including antidote."""
+        self.lubricant_traits = normalize_toy_lubricant_traits(traits)
+        self.lubricant_duration = builtins.max(0, duration)
 
 
 class ToyItem():
@@ -541,15 +573,33 @@ def init_toy_attributes(business):
         production_cost_add=5, value_add=28, power_add=-5, arousal_rating_add=3)
 
     extension_module = ToyAttribute("Extension Module",
-        "A modular chassis expansion that adds two additional component slots at the cost of one. Requires a robust casing to support the extra hardware.",
+        "A modular chassis expansion that uses one component slot and grants three extra module slots. Requires a robust casing to support the extra hardware.",
         research_needed=350, requires=extra_robust,
         production_cost_add=3, value_add=12, power_add=-1, arousal_rating_add=0,
-        module_space_add=2)
+        module_space_add=3)
+
+    lubricant_infusion_1 = ToyAttribute("Lubricant Infusion I",
+        "Develop a stable lubricant base that can carry one serum trait for 2 turns of topical delivery.",
+        research_needed=200, production_cost_add=0, value_add=0, power_add=0,
+        design_component=False, lubricant_trait_add=1, lubricant_duration_add=1)
+
+    lubricant_infusion_2 = ToyAttribute("Lubricant Infusion II",
+        "Improve the carrier blend so custom lubricant formulas can carry a second serum trait and last 3 turns.",
+        research_needed=450, requires=lubricant_infusion_1,
+        production_cost_add=0, value_add=0, power_add=0,
+        design_component=False, lubricant_trait_add=1, lubricant_duration_add=1)
+
+    lubricant_infusion_3 = ToyAttribute("Lubricant Infusion III",
+        "Perfect the suspension matrix to support a third serum trait while extending lubricant duration to 4 turns.",
+        research_needed=800, requires=lubricant_infusion_2,
+        production_cost_add=0, value_add=0, power_add=0,
+        design_component=False, lubricant_trait_add=1, lubricant_duration_add=1)
 
     business.toy_attributes = [
         basic_battery, enhanced_battery, power_cell,
         bluetooth_module, cellular_module, led_lighting, extra_robust, electro_heat_transfer, pressure_sensors,
         gps_tracker, electro_stimulator, electro_shocker, temperature_control,
         diagnostics_module, ai_adaptive, haptic_feedback, pressure_point_stimulator,
-        extension_module
+        extension_module,
+        lubricant_infusion_1, lubricant_infusion_2, lubricant_infusion_3
     ]
